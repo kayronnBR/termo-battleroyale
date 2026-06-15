@@ -1200,9 +1200,9 @@
                 if(palTentada === gabarito) {
                     myStatus = "ganhou";
                     database.ref(`rooms/${roomId}/players/${username}/status`).set("ganhou");
-                    database.ref(`rooms/${roomId}/status`).set("encerrado");
                     database.ref(`rooms/${roomId}/vencedor`).set(username);
                     computarPontuacaoFinal(true);
+                    verificarSeTodosPerderam();
 
                     if(lineTimerInterval) clearInterval(lineTimerInterval);
                     document.getElementById('timer-display').style.display = 'none';
