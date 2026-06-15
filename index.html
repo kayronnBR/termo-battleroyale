@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Termo Battle Royale 👑TESTE</title>
+    <title>67 Termo Battle Royale 👑</title>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
@@ -45,6 +45,13 @@
         #timer-display { font-size: 1.5rem; font-weight: bold; color: #ff453a; margin-top: 5px; display: none; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
+        /* Lobby System UI */
+        .lobby-container { background: #2c2c2e; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #444; }
+        .btn-copy { display: inline-block; width: auto; padding: 4px 10px; font-size: 0.8rem; margin-left: 10px; background: #48484a; margin-top: 0; }
+        .btn-ready { background: var(--color-present); }
+        .btn-ready:hover { background: #968331; }
+        .btn-start { background: var(--color-correct); font-size: 1.1rem; }
+
         /* Wordle Grid */
         .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; }
         .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; transition: all 0.5s ease; }
@@ -54,11 +61,14 @@
         .cell.present { background-color: var(--color-present); border-color: var(--color-present); }
         .cell.absent { background-color: var(--color-absent); border-color: var(--color-absent); }
 
-        /* Keyboard */
+        /* Keyboard & Feedback Colors */
         .keyboard { display: flex; flex-direction: column; gap: 6px; }
         .key-row { display: flex; justify-content: center; gap: 4px; }
-        .key { background: #818384; border: none; color: white; padding: 14px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 0.9rem; user-select: none; }
+        .key { background: #818384; border: none; color: white; padding: 14px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 0.9rem; user-select: none; transition: background 0.2s; }
         .key.wide { flex: 1.5; }
+        .key.correct { background-color: var(--color-correct) !important; }
+        .key.present { background-color: var(--color-present) !important; }
+        .key.absent { background-color: var(--color-absent) !important; }
 
         /* Spectator Panel */
         .spectator-panel { flex: 1; min-width: 300px; max-width: 400px; background: #1c1c1e; border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; max-height: 70vh; overflow-y: auto; }
@@ -100,8 +110,15 @@
 
     <div id="screen-game" class="screen">
         <div class="status-panel">
-            <h3 id="room-title">SALA: ----</h3>
-            <div id="timer-message">Aguardando alguém acertar...</div>
+            <h3 id="room-title">SALA: ---- <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar Código</button></h3>
+            
+            <div id="lobby-panel" class="lobby-container">
+                <button class="btn-ready" id="btn-ready-toggle" onclick="alternarPronto()">Marcar como Pronto</button>
+                <button class="btn-start" id="btn-host-start" onclick="forçarInicioPartida()" style="display: none; margin-top: 10px;">Iniciar Jogo 🚀</button>
+                <p id="lobby-status-desc" style="margin-top: 10px; font-size: 0.9rem; color: #b59f3b;">Aguardando jogadores ficarem prontos...</p>
+            </div>
+
+            <div id="timer-message" style="margin-top: 10px;">Aguardando a partida iniciar...</div>
             <div id="timer-display">02:00</div>
         </div>
 
@@ -112,37 +129,37 @@
 
                 <div class="keyboard" id="game-keyboard">
                     <div class="key-row">
-                        <button class="key" onclick="pressKey('Q')">Q</button>
-                        <button class="key" onclick="pressKey('W')">W</button>
-                        <button class="key" onclick="pressKey('E')">E</button>
-                        <button class="key" onclick="pressKey('R')">R</button>
-                        <button class="key" onclick="pressKey('T')">T</button>
-                        <button class="key" onclick="pressKey('Y')">Y</button>
-                        <button class="key" onclick="pressKey('U')">U</button>
-                        <button class="key" onclick="pressKey('I')">I</button>
-                        <button class="key" onclick="pressKey('O')">O</button>
-                        <button class="key" onclick="pressKey('P')">P</button>
+                        <button class="key" id="key-Q" onclick="pressKey('Q')">Q</button>
+                        <button class="key" id="key-W" onclick="pressKey('W')">W</button>
+                        <button class="key" id="key-E" onclick="pressKey('E')">E</button>
+                        <button class="key" id="key-R" onclick="pressKey('R')">R</button>
+                        <button class="key" id="key-T" onclick="pressKey('T')">T</button>
+                        <button class="key" id="key-Y" onclick="pressKey('Y')">Y</button>
+                        <button class="key" id="key-U" onclick="pressKey('U')">U</button>
+                        <button class="key" id="key-I" onclick="pressKey('I')">I</button>
+                        <button class="key" id="key-O" onclick="pressKey('O')">O</button>
+                        <button class="key" id="key-P" onclick="pressKey('P')">P</button>
                     </div>
                     <div class="key-row">
-                        <button class="key" onclick="pressKey('A')">A</button>
-                        <button class="key" onclick="pressKey('S')">S</button>
-                        <button class="key" onclick="pressKey('D')">D</button>
-                        <button class="key" onclick="pressKey('F')">F</button>
-                        <button class="key" onclick="pressKey('G')">G</button>
-                        <button class="key" onclick="pressKey('H')">H</button>
-                        <button class="key" onclick="pressKey('J')">J</button>
-                        <button class="key" onclick="pressKey('K')">K</button>
-                        <button class="key" onclick="pressKey('L')">L</button>
+                        <button class="key" id="key-A" onclick="pressKey('A')">A</button>
+                        <button class="key" id="key-S" onclick="pressKey('S')">S</button>
+                        <button class="key" id="key-D" onclick="pressKey('D')">D</button>
+                        <button class="key" id="key-F" onclick="pressKey('F')">F</button>
+                        <button class="key" id="key-G" onclick="pressKey('G')">G</button>
+                        <button class="key" id="key-H" onclick="pressKey('H')">H</button>
+                        <button class="key" id="key-J" onclick="pressKey('J')">J</button>
+                        <button class="key" id="key-K" onclick="pressKey('K')">K</button>
+                        <button class="key" id="key-L" onclick="pressKey('L')">L</button>
                         <button class="key wide" onclick="pressKey('BACKSPACE')">⌫</button>
                     </div>
                     <div class="key-row">
-                        <button class="key" onclick="pressKey('Z')">Z</button>
-                        <button class="key" onclick="pressKey('X')">X</button>
-                        <button class="key" onclick="pressKey('C')">C</button>
-                        <button class="key" onclick="pressKey('V')">V</button>
-                        <button class="key" onclick="pressKey('B')">B</button>
-                        <button class="key" onclick="pressKey('N')">N</button>
-                        <button class="key" onclick="pressKey('M')">M</button>
+                        <button class="key" id="key-Z" onclick="pressKey('Z')">Z</button>
+                        <button class="key" id="key-X" onclick="pressKey('X')">X</button>
+                        <button class="key" id="key-C" onclick="pressKey('C')">C</button>
+                        <button class="key" id="key-V" onclick="pressKey('V')">V</button>
+                        <button class="key" id="key-B" onclick="pressKey('B')">B</button>
+                        <button class="key" id="key-N" onclick="pressKey('N')">N</button>
+                        <button class="key" id="key-M" onclick="pressKey('M')">M</button>
                         <button class="key wide" onclick="pressKey('ENTER')">ENTER</button>
                     </div>
                 </div>
@@ -181,7 +198,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // DICIONÁRIO MASSIVO DE PALAVRAS EM PORTUGUÊS (TODAS COM EXATAMENTE 5 LETRAS E SEM ACENTOS)
+        // DICIONÁRIO DE PALAVRAS VÁLIDAS E DE SORTEIO (SEM ACENTOS)
         const DICIONARIO = [
             "POBRE", "FILMA", "TERMO", "JOGOS", "NUVEM", "TEXTO", "LETRA", "BRUTA", "PLANO", "PODER",
             "SAGAZ", "PORTA", "CORPO", "FESTA", "GRUPO", "TEMPO", "AMIGO", "CARRO", "CASAL", "CHAVE",
@@ -198,93 +215,74 @@
             "PROVA", "MARCA", "SIGLA", "TEMAS", "VERBO", "TERCO", "PAUTA", "TESTE", "FILME", "PRESO",
             "SOLTO", "LIVRES", "DANCA", "CANTA", "CORRA", "FALOU", "OUVIU", "ESTOU", "ROUPA", "CREME",
             "BATER", "BEBER", "FUGIR", "SONHO", "TEMOR", "FUNDO", "LINDO", "CEGO", "SURDO", "BRAVO",
-            "AMPLO", "PLENO", "MUTUO", "GHETTO", "CAUSA", "ARCO", "AUTOR", "ATRAS", "BAIXO", "BARCO",
-            "BRIGA", "BUSCA", "BRUXA", "CABÇA", "CALMA", "CAMPO", "CHANCE", "CHAPA", "CHEFE", "CINTO",
-            "CIUME", "CLARO", "COBRE", "CONTA", "COROA", "CRIME", "CUSTO", "DANFE", "DEDAL", "DENTE",
-            "DISCO", "DOBRO", "DOUTE", "DRAGA", "DUQUE", "EXAME", "EXXON", "FAIXA", "FARSA", "FAUNA",
-            "FEIRA", "FERRO", "FIBRA", "FILAO", "FINTO", "FIRME", "FISCO", "FLAMA", "FLORA", "FLUXO",
+            "AMPLO", "PLENO", "MUTUO", "CAUSA", "ARCO", "AUTOR", "ATRAS", "BAIXO", "BARCO", "BRIGA", 
+            "BUSCA", "BRUXA", "CALMA", "CAMPO", "CHEFÈ", "CINTO", "CIUME", "CLARO", "COBRE", "CONTA", 
+            "COROA", "CRIME", "CUSTO", "DENTE", "DISCO", "DOBRO", "DRAGA", "DUQUE", "EXAME", "FAIXA", 
+            "FARSA", "FAUNA", "FEIRA", "FERRO", "FIBRA", "FIRME", "FISCO", "FLAMA", "FLORA", "FLUXO",
             "FOLHA", "FONTE", "FORMA", "FORTE", "FOSSO", "FRADE", "FRASE", "FRUTO", "FUMAR", "FUNDO",
-            "FURIA", "FUSAO", "GASTO", "GEADA", "GESSO", "GLOBO", "GOVERNO", "GRADE", "GRARA", "GRAVE",
-            "GRAXA", "GRILO", "GRUTA", "HASTE", "HORTA", "HOTEL", "HUMOR", "IAQUE", "IDADE", "IDOSO",
-            "IGREJA", "IGUAL", "ILHA", "IMPAR", "INDIO", "INFRA", "IRMAO", "ITENS", "JALECO", "JANELA",
-            "JARDIM", "JARRA", "JATO", "JEITO", "JOIA", "JUROS", "JUSTO", "LABIO", "LADRAO", "LAGOA",
-            "LAMPA", "LANÇA", "LANCE", "LAPIS", "LARVA", "LASER", "LATEX", "LAUDO", "LEIAO", "LEITE",
-            "LEITO", "LEME", "LENTE", "LEQUE", "LESTE", "LIBRA", "LIDER", "LIMPO", "LINCE", "LINDO",
-            "LIVRO", "LIVRE", "LOUSA", "LUCRO", "LUGAR", "LUPUS", "LUVA", "LUZES", "MACACO", "MACIO",
-            "MAÇON", "MAGIA", "MAGMA", "MAGRO", "MAIOR", "MALHA", "MANCO", "MANGA", "MANHA", "MANIA",
-            "MANTA", "MARCO", "MARGEM", "MASSA", "MATIZ", "MEGHA", "MEIGO", "MENOR", "MENOS", "MENTA",
-            "MESES", "METAL", "METRO", "MIADO", "MICRA", "MICRO", "MILHO", "MIMEO", "MINAS", "MIOLO",
-            "MISTO", "MITOS", "MOCO", "MOEDA", "MOER", "MOFA", "MOFO", "MOLAR", "MOLDE", "MOLHO",
-            "MONGE", "MONTE", "MORAL", "MORTE", "MORRO", "MOSCA", "MOTOR", "MUDAS", "MUDO", "MUITO",
-            "MULTA", "MUNDO", "MURO", "MUSEU", "MUSGO", "MUTUA", "NACAO", "NATIVO", "NAVIO", "NEVOA",
-            "NINHO", "NIVEL", "NOBRE", "NOITE", "NOIVA", "NOIVO", "NORTE", "NOSSO", "NOTAS", "NOVA",
-            "NUNCA", "NUVEM", "OASIS", "OBTER", "OESTE", "OITAV", "OLEOS", "OLHAR", "OMBROS", "ONDA",
-            "ONTEM", "OPCAO", "ORGAO", "ORVAL", "OSSEO", "OURO", "OUTRO", "OUVIR", "OXIDO", "PACTO",
-            "PADRE", "PAGAR", "PAINE", "PALHA", "PALMA", "PANEL", "PANOS", "PAPEL", "PARAR", "PARDO",
-            "PAREO", "PARTE", "PARTO", "PASSO", "PASTA", "PASTO", "PATIO", "PATUÀ", "PAUTA", "PAVIO",
-            "PEÇAS", "PEDAL", "PEDRA", "PEDRO", "PEIXE", "PELES", "PELOS", "PENAS", "PENTE", "PERDA",
-            "PERTO", "PERU", "PESADO", "PESAR", "PESO", "PESTE", "PIANO", "PIADA", "PICAO", "PILAO",
-            "PILHA", "PINGO", "PINHO", "PINOS", "PINTA", "PINTO", "PINÇA", "PIRES", "PISO", "PISTA",
-            "PIZZA", "PLACA", "PLANO", "PLATA", "PLAZA", "PLENA", "PLENO", "PLUMA", "PNEUM", "POBRE",
-            "POCO", "PODER", "POEIRA", "POEMA", "POETA", "POLPA", "POLVO", "POMAR", "POMBA", "POMBO",
-            "PONTA", "PONTO", "PORCO", "PORTA", "PORTO", "POSSE", "POSTE", "POSTO", "POTES", "POUCO",
-            "POUSO", "POVO", "PRAÇA", "PRADO", "PRAGA", "PRATO", "PRAZO", "PREÇO", "PREDI", "PREGO",
-            "PRELO", "PRESA", "PRESO", "PRETO", "PRIMO", "PRIOR", "PROSA", "PROVA", "PUDIM", "PULGA",
-            "PULHO", "PULO", "PULSO", "PUMA", "PUNHO", "PUNID", "PUPIL", "PURA", "PURO", "PUXAR",
-            "QUART", "QUASE", "QUEDA", "QUEMA", "QUERA", "QUERO", "QUILO", "QUINA", "QUINT", "QUOTA",
-            "RABO", "RADAR", "RADIO", "RAIAS", "RAIO", "RAIVA", "RAIZ", "RAMAL", "RAMOS", "RAMPA",
-            "RANGO", "RAPAZ", "RAPID", "RARO", "RASGO", "RAZAO", "REALE", "REBAR", "REBU", "RECEM",
-            "RECO", "REDE", "REDUZ", "REFAZ", "REFEM", "REGRA", "REGUA", "REINO", "RELES", "RELOG",
-            "REMAO", "REMO", "RENDA", "RENTE", "REPAO", "REPOR", "REPU", "RESES", "RESTO", "RETRO",
-            "REVER", "REVIR", "REZAR", "RIFA", "RIFLE", "RIGO", "RIMAS", "RITMO", "RIVAL", "ROBER",
-            "ROCHA", "RODA", "RODEO", "RODO", "ROGAR", "ROJÃO", "ROLO", "ROMAO", "ROMBO", "ROMPA",
-            "RONCO", "RONDA", "ROUPA", "ROXAS", "ROXO", "RUBRO", "RUDE", "RUGBY", "RUIDO", "RUINA",
-            "RURAL", "RUSSO", "SABER", "SABIO", "SABOR", "SACAR", "SACO", "SACRA", "SACRO", "SAFA",
-            "SAFRA", "SAGAZ", "SAIDA", "SAIDO", "SAIRA", "SALA", "SALDO", "SALM", "SALMO", "SALSA",
-            "SALSO", "SALVA", "SALVO", "SAMBA", "SANTO", "SAPAO", "SAPATO", "SAPO", "SAQUE", "SARNA",
-            "SARRO", "SAUDE", "SAUNA", "SAZON", "SEBOS", "SECA", "SECO", "SECTA", "SECTO", "SEDE",
-            "SEDEX", "SEGAR", "SEGRE", "SEIO", "SEITA", "SEITO", "SEIXO", "SELO", "SELVA", "SENDO",
-            "SENHA", "SENSU", "SENTA", "SENTI", "SENTO", "SENZA", "SEPAR", "SERAO", "SEREI", "SERIA",
-            "SERIE", "SERIO", "SERRA", "SERRO", "SERVA", "SERVO", "SEXTA", "SEXTO", "SABIO", "SICRA",
-            "SIGLA", "SIGMA", "SIGNO", "SILBA", "SILVA", "SILVO", "SIMIO", "SINAL", "SIND", "SINET",
-            "SINFO", "SINO", "SINTA", "SINTO", "SIRI", "SIRIA", "SITIO", "SITUA", "SIVIC", "SKATE",
-            "SLANG", "SLIDE", "SMART", "SNACK", "SOADO", "SOBRA", "SOBRE", "SOCIO", "SODA", "SOFAS",
-            "SOFRÈ", "SOGRA", "SOGRO", "SOLA", "SOLAR", "SOLDA", "SOLDO", "SOLO", "SOLTA", "SOLTO",
-            "SOMAR", "SONDA", "SONHO", "SONIC", "SONO", "SOPRO", "SORDO", "SORO", "SORTE", "SOUZA",
-            "SOVCO", "STAND", "START", "STATUS", "STOCK", "SUADO", "SUBIR", "SUCO", "SUCRE", "SUDOR",
-            "SUECO", "SUGAR", "SUICO", "SUINO", "SUITE", "SUJA", "SUJO", "SULCO", "SUMIR", "SUMO",
-            "SUPER", "SUPLA", "SUPOR", "SURDA", "SURDO", "SURFE", "SURTO", "SUSTO", "SUTIL", "SUTRA",
-            "TABUA", "TACA", "TACHO", "TACO", "TALCO", "TALHA", "TALHO", "TALO", "TAMPA", "TAMPO",
-            "TANGA", "TANGO", "TANQUE", "TANTO", "TAPAR", "TAPETE", "TAPUME", "TAREFA", "TARDE",
-            "TARIFA", "TARJA", "TART", "TAXAS", "TEADO", "TEATRO", "TECAL", "TECE", "TECLA", "TECO",
-            "TEIA", "TEIMA", "TEIXO", "TELA", "TELHA", "TELHO", "TEMAS", "TEMER", "TEMOR", "TEMPO",
-            "TENAZ", "TENCE", "TENDER", "TENDO", "TENIS", "TENOR", "TENSA", "TENSO", "TENTA", "TENTO",
-            "TERCO", "TERÇA", "TERRA", "TERRE", "TERSO", "TESAO", "TESE", "TESON", "TESTA", "TESTE",
-            "TETO", "TEXAS", "TEXTO", "TIARA", "TIBIA", "TIETE", "TIGRE", "TIJOL", "TILD", "TIMAO",
-            "TIMBO", "TIMOR", "TINTA", "TINTO", "TIPOS", "TIRAR", "TIRO", "TÍTULO", "TOADO", "TOALH",
-            "TOBOG", "TOCA", "TOCAR", "TOCHA", "TOGA", "TOLEO", "TOLER", "TOLHO", "TOMAR", "TOMBO",
-            "TOMO", "TONAL", "TONEL", "TONER", "TONTO", "TOPAR", "TOPO", "TOQUE", "TORAX", "TORCE",
-            "TORRE", "TORTO", "TOSCO", "TOSSE", "TOTAL", "TOURO", "TRAÇO", "TRAJE", "TRAMA", "TRAPO",
-            "TRASH", "TRATA", "TRATO", "TRAVA", "TRAVO", "TREM", "TREMO", "TRENA", "TRENS", "TREVO",
-            "TREZE", "TRIBO", "TRICO", "TRIGO", "TRINA", "TRINO", "TRIO", "TRIPA", "TRIST", "TRONO",
-            "TROPA", "TROVA", "TROVO", "TRUCO", "TRUFA", "TRUTA", "TUBA", "TUBO", "TUCAN", "TUDO",
-            "TUFÃO", "TUFO", "TUMBA", "TUMOR", "TUNEL", "TURBA", "TURBO", "TURCO", "TURMA", "TURNO",
-            "TURFA", "TUTOR", "TWEET", "UNIÃO", "UNICO", "UNIDA", "UNIDO", "URANO", "URBANO", "URSO",
-            "URUBU", "USADO", "USINA", "USTED", "UTENS", "UTERO", "VACUO", "VADIO", "VAGAO", "VAGOS",
-            "VAIA", "VALE", "VALER", "VALHO", "VALOR", "VALVA", "VAMPO", "VAND", "VAPOR", "VARA",
-            "VARAL", "VARÃO", "VARIA", "VARIO", "VASCO", "VASIL", "VASO", "VASTO", "VAZÃO", "VAZIO",
-            "VEADO", "VECTO", "VEGAS", "VEIA", "VEICU", "VELHA", "VELHO", "VELOZ", "VEMBA", "VENCE",
-            "VENDA", "VENDO", "VENIA", "VENHO", "VENTO", "VENUS", "VERBA", "VERBO", "VERDE", "VERGA",
-            "VERME", "VERSO", "VERTE", "VERVE", "VESSA", "VESTE", "VETO", "VETOR", "VEZES", "VIAJAR",
-            "VIANA", "VIAS", "VIBRA", "VICER", "VICIO", "VIDA", "VIDEO", "VIDRO", "VIELA", "VIÉS",
-            "VIGIA", "VIGOR", "VILAO", "VIMOS", "VINCI", "VINHO", "VINTE", "VIOLA", "VIRAL", "VIRAR",
-            "VIRGO", "VIRIL", "VIRUS", "VISAO", "VISAR", "VISCO", "VISEU", "VISO", "VISTA", "VISTO",
-            "VITAL", "VITOR", "VIVAZ", "VIVER", "VIVID", "VIVO", "VIZIN", "VOCAL", "VODKA", "VOGAL",
-            "VOGAR", "VOLEI", "VOLTA", "VOLTO", "VOLUME", "VORTEX", "VOSSO", "VOTAR", "VOTO", "VOVÒ",
-            "VOVO", "VULGO", "VULTO", "VULVA", "XADRE", "XALÈ", "XAMÃ", "XANGA", "XARA", "XEREM",
-            "XERIF", "XEROX", "XICAR", "XINGA", "XISTO", "XODÒ", "YACHT", "YOGA", "ZABUM", "ZAGAL",
-            "ZAMBO", "ZANGA", "ZANHO", "ZANZA", "ZARCO", "ZEBRA", "ZELAR", "ZELO", "ZERAR", "ZERO",
-            "ZINCO", "ZODIA", "ZOMBA", "ZONA", "ZONZO", "ZOOM", "ZORRA", "ZORRO", "ZULÙ", "ZUMBI"
+            "FURIA", "FUSAO", "GASTO", "GEADA", "GESSO", "GLOBO", "GRADE", "GRAVE", "GRAXA", "GRILO", 
+            "GRUTA", "HASTE", "HORTA", "HOTEL", "HUMOR", "IDADE", "IDOSO", "IGUAL", "ILHA", "IMPAR", 
+            "INDIO", "INFRA", "ITENS", "JARRA", "JATO", "JEITO", "JOIA", "JUROS", "JUSTO", "LABIO", 
+            "LAGOA", "LANCE", "LAPIS", "LARVA", "LASER", "LATEX", "LAUDO", "LEITE", "LEITO", "LEME", 
+            "LENTE", "LEQUE", "LESTE", "LIBRA", "LIDER", "LIMPO", "LINCE", "LINDO", "LIVRO", "LIVRE", 
+            "LOUSA", "LUCRO", "LUGAR", "LUPUS", "LUVA", "LUZES", "MACIO", "MAGIA", "MAGMA", "MAGRO", 
+            "MAIOR", "MALHA", "MANCO", "MANGA", "MANHA", "MANIA", "MANTA", "MARCO", "MASSA", "MATIZ", 
+            "MEIGO", "MENOR", "MENOS", "MENTA", "MESES", "METAL", "METRO", "MIADO", "MICRA", "MICRO", 
+            "MILHO", "MINAS", "MIOLO", "MISTO", "MITOS", "MOCO", "MOEDA", "MOER", "MOFA", "MOFO", 
+            "MOLAR", "MOLDE", "MOLHO", "MONGE", "MONTE", "MORAL", "MORTE", "MORRO", "MOSCA", "MOTOR", 
+            "MUDAS", "MUDO", "MUITO", "MULTA", "MUNDO", "MURO", "MUSEU", "MUSGO", "MUTUA", "NACAO", 
+            "NAVIO", "NEVOA", "NINHO", "NIVEL", "NOBRE", "NOITE", "NOIVA", "NOIVO", "NORTE", "NOSSO", 
+            "NOTAS", "NOVA", "NUNCA", "NUVEM", "OASIS", "OBTER", "OESTE", "OLHAR", "ONDA", "ONTEM", 
+            "OPCAO", "ORGAO", "OURO", "OUTRO", "OUVIR", "OXIDO", "PACTO", "PADRE", "PAGAR", "PALHA", 
+            "PALMA", "PAPEL", "PARAR", "PARDO", "PAREO", "PARTE", "PARTO", "PASSO", "PASTA", "PASTO", 
+            "PATIO", "PAUTA", "PAVIO", "PEDAL", "PEDRA", "PEDRO", "PEIXE", "PELES", "PELOS", "PENAS", 
+            "PENTE", "PERDA", "PERTO", "PERU", "PESAR", "PESO", "PESTE", "PIANO", "PIADA", "PILHA", 
+            "PINGO", "PINHO", "PINOS", "PINTA", "PINTO", "PIRES", "PISO", "PISTA", "PIZZA", "PLACA", 
+            "PLANO", "PLENA", "PLENO", "PLUMA", "POBRE", "POCO", "PODER", "POEMA", "POETA", "POLPA", 
+            "POLVO", "POMAR", "POMBA", "POMBO", "PONTA", "PONTO", "PORCO", "PORTA", "PORTO", "POSSE", 
+            "POSTE", "POSTO", "POTES", "POUCO", "POUSO", "POVO", "PRADO", "PRAGA", "PRATO", "PRAZO", 
+            "PRECO", "PREGO", "PRESA", "PRESO", "PRETO", "PRIMO", "PRIOR", "PROSA", "PROVA", "PUDIM", 
+            "PULGA", "PULO", "PULSO", "PUMA", "PUNHO", "PURA", "PURO", "PUXAR", "QUASE", "QUEDA", 
+            "QUERO", "QUILO", "QUINA", "QUOTA", "RADAR", "RADIO", "RAIO", "RAIVA", "RAIZ", "RAMAL", 
+            "RAMOS", "RAMPA", "RANGO", "RAPAZ", "RARO", "RASGO", "RAZAO", "REDE", "REDUZ", "REFAZ", 
+            "REFEM", "REGRA", "REGUA", "REINO", "RELES", "REMO", "RENDA", "RENTE", "REPOR", "RESTO", 
+            "RETRO", "REVER", "REVIR", "REZAR", "RIFA", "RIFLE", "RITMO", "RIVAL", "ROCHA", "RODA", 
+            "RODO", "ROGAR", "ROLO", "ROMBO", "ROMPA", "RONCO", "RONDA", "ROUPA", "ROXO", "RUBRO", 
+            "RUDE", "RUGBY", "RUIDO", "RUINA", "RURAL", "RUSSO", "SABER", "SABIO", "SABOR", "SACAR", 
+            "SACO", "SACRA", "SACRO", "SAFRA", "SAGAZ", "SAIDA", "SALDO", "SALMO", "SALSA", "SALSO", 
+            "SALVA", "SALVO", "SAMBA", "SANTO", "SAPO", "SAQUE", "SARNA", "SARRO", "SAUDE", "SAUNA", 
+            "SECA", "SECO", "SEDE", "SEDEX", "SEIO", "SEITA", "SEIXO", "SELO", "SELVA", "SENDO", 
+            "SENHA", "SENSU", "SENTA", "SENTI", "SENTO", "SERAO", "SEREI", "SERIA", "SERIE", "SERIO", 
+            "SERRA", "SERRO", "SERVA", "SERVO", "SEXTA", "SEXTO", "SIGLA", "SIGMA", "SIGNO", "SILVA", 
+            "SILVO", "SIMIO", "SINAL", "SINO", "SINTA", "SINTO", "SITIO", "SITUA", "SKATE", "SLIDE", 
+            "SOADO", "SOBRA", "SOBRE", "SOCIO", "SODA", "SOFAS", "SOGRA", "SOGRO", "SOLA", "SOLAR", 
+            "SOLDA", "SOLDO", "SOLO", "SOLTA", "SOLTO", "SOMAR", "SONDA", "SONHO", "SONO", "SOPRO", 
+            "SORDO", "SORO", "SORTE", "SOUZA", "SUADO", "SUBIR", "SUCO", "SUDOR", "SUECO", "SUGAR", 
+            "SUICO", "SUINO", "SUITE", "SUJA", "SUJO", "SULCO", "SUMIR", "SUMO", "SUPER", "SUPOR", 
+            "SURDA", "SURDO", "SURFE", "SURTO", "SUSTO", "SUTIL", "SUTRA", "TABUA", "TACHO", "TACO", 
+            "TALCO", "TALHA", "TALHO", "TALO", "TAMPA", "TAMPO", "TANGA", "TANGO", "TANTO", "TAPAR", 
+            "TARDE", "TARJA", "TAXAS", "TEATRO", "TECLA", "TECO", "TEIA", "TEIMA", "TEIXO", "TELA", 
+            "TELHA", "TELHO", "TEMAS", "TEMER", "TEMOR", "TEMPO", "TENAZ", "TENDO", "TENIS", "TENOR", 
+            "TENSA", "TENSO", "TENTA", "TENTO", "TERCO", "TERRA", "TESAO", "TESE", "TESTA", "TESTE", 
+            "TETO", "TEXAS", "TEXTO", "TIARA", "TIBIA", "TIGRE", "TINTO", "TIPOS", "TIRAR", "TIRO", 
+            "TOCA", "TOCAR", "TOCHA", "TOGA", "TOMAR", "TOMBO", "TOMO", "TONEL", "TONER", "TONTO", 
+            "TOPAR", "TOPO", "TOQUE", "TORAX", "TORCE", "TORRE", "TORTO", "TOSCO", "TOSSE", "TOTAL", 
+            "TOURO", "TRACO", "TRAJE", "TRAMA", "TRAPO", "TRATA", "TRATO", "TRAVA", "TRAVO", "TREM", 
+            "TRENA", "TRENS", "TREVO", "TREZE", "TRIBO", "TRICO", "TRIGO", "TRINA", "TRINO", "TRIO", 
+            "TRIPA", "TRIST", "TRONO", "TROPA", "TROVA", "TROVO", "TRUCO", "TRUFA", "TRUTA", "TUBO", 
+            "TUDO", "TUFO", "TUMBA", "TUMOR", "TUNEL", "TURBA", "TURBO", "TURCO", "TURMA", "TURNO", 
+            "TUTOR", "UNICO", "UNIDA", "UNIDO", "URANO", "URSO", "URUBU", "USADO", "USINA", "UTERO", 
+            "VACUO", "VADIO", "VAGAO", "VAGOS", "VAIA", "VALE", "VALER", "VALOR", "VALVA", "VAPOR", 
+            "VARA", "VARAL", "VARIA", "VARIO", "VASCO", "VASO", "VASTO", "VAZIO", "VEADO", "VEGAS", 
+            "VEIA", "VELHA", "VELHO", "VELOZ", "VENCE", "VENDA", "VENDO", "VENIA", "VENHO", "VENTO", 
+            "VENUS", "VERBA", "VERBO", "VERDE", "VERGA", "VERME", "VERSO", "VERTE", "VERVE", "VESTE", 
+            "VETO", "VETOR", "VEZES", "VIAS", "VIBRA", "VICIO", "VIDA", "VIDEO", "VIDRO", "VIELA", 
+            "VIGIA", "VIGOR", "VILAO", "VIMOS", "VINHO", "VINTE", "VIOLA", "VIRAL", "VIRAR", "VIRIL", 
+            "VIRUS", "VISAO", "VISAR", "VISCO", "VISO", "VISTA", "VISTO", "VITAL", "VITOR", "VIVAZ", 
+            "VIVER", "VIVO", "VOCAL", "VODKA", "VOGAL", "VOGAR", "VOLEI", "VOLTA", "VOLTO", "VOSSO", 
+            "VOTAR", "VOTO", "VOVO", "VULGO", "VULTO", "VULVA", "XADRE", "XARA", "XEROX", "XINGA", 
+            "XISTO", "YOGA", "ZEBRA", "ZELAR", "ZELO", "ZERAR", "ZERO", "ZINCO", "ZOMBA", "ZONA", 
+            "ZONZO", "ZOOM", "ZORRA", "ZORRO", "ZUMBI"
         ];
 
         // Variáveis Globais de Estado do Jogo
@@ -295,11 +293,22 @@
         let currentCol = 0;
         let maxRowsAllowed = 6;
         let myStatus = "jogando"; 
+        let isReady = false;
+        let amIHost = false;
+        let roomStatus = "lobby";
         let timerInterval = null;
 
         // Estrutura da matriz de palpites locais
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
+
+        // Carregar Nome Salvo no Cache (Local Storage) ao abrir o jogo
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('termo_br_username');
+            if (savedName) {
+                document.getElementById('input-username').value = savedName;
+            }
+        });
 
         // Inicializar Grade do Tabuleiro Visual
         const board = document.getElementById('board-grid');
@@ -316,21 +325,38 @@
             board.appendChild(rowDiv);
         }
 
-        // Criar Nova Sala
+        // Copiar Código da Sala para a Área de Transferência
+        function copiarCodigoSala() {
+            if (!roomId) return;
+            navigator.clipboard.writeText(roomId).then(() => {
+                const copyBtn = document.getElementById('btn-copy-code');
+                copyBtn.innerText = "Copiado! ✅";
+                setTimeout(() => { copyBtn.innerText = "Copiar Código"; }, 2000);
+            }).catch(() => {
+                alert("Código da sala: " + roomId);
+            });
+        }
+
+        // Criar Nova Sala (Host)
         function criarNovaSala() {
             username = document.getElementById('input-username').value.trim();
             if (!username) return alert("Insira um nome válido!");
             
+            // Salva nome no cache
+            localStorage.setItem('termo_br_username', username);
+            
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
             
-            // SORTEIO DIRETO DO DICIONÁRIO INTEGRADO
+            // SORTEANDO DIRETAMENTE DO DICIONÁRIO INTEGRADO
             const palavraEscolhida = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
 
             database.ref('salas/' + roomId).set({
                 palavra: palavraEscolhida,
-                status: "jogando",
+                status: "lobby",
+                host: username,
                 timerStart: null
             }).then(() => {
+                amIHost = true;
                 entrarNaSalaComId(roomId);
             });
         }
@@ -342,8 +368,16 @@
             
             if (!username || !roomId) return alert("Preencha o nome e o código da sala!");
             
+            // Salva nome no cache
+            localStorage.setItem('termo_br_username', username);
+            
             database.ref('salas/' + roomId).once('value', (snapshot) => {
                 if (snapshot.exists()) {
+                    const salaData = snapshot.val();
+                    if (salaData.status === "jogando") {
+                        alert("A partida nessa sala já começou!");
+                        return;
+                    }
                     entrarNaSalaComId(roomId);
                 } else {
                     alert("Sala não encontrada!");
@@ -354,23 +388,54 @@
         function entrarNaSalaComId(id) {
             document.getElementById('screen-setup').classList.remove('active');
             document.getElementById('screen-game').classList.add('active');
-            document.getElementById('room-title').innerText = `SALA: ${id}`;
+            document.getElementById('room-title').innerHTML = `SALA: <span style="color:var(--color-present)">${id}</span> <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar</button>`;
 
             atualizarMeuStatusNoFirebase();
 
-            // Escutar atualizações da sala
+            // Escutar atualizações da sala no Firebase em tempo real
             database.ref('salas/' + id).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
 
                 palavraSecreta = data.palavra.toUpperCase();
-                
+                roomStatus = data.status;
+
+                if (data.host === username) {
+                    amIHost = true;
+                }
+
+                // Gerenciamento de Interface: Lobby vs Jogo em Andamento
+                const lobbyPanel = document.getElementById('lobby-panel');
+                const playerArea = document.getElementById('player-area');
+                const hostStartBtn = document.getElementById('btn-host-start');
+                const timerMsg = document.getElementById('timer-message');
+
+                if (roomStatus === "lobby") {
+                    lobbyPanel.style.display = "block";
+                    playerArea.style.opacity = "0.25";
+                    playerArea.style.pointerEvents = "none";
+                    timerMsg.innerText = "Aguardando início no lobby...";
+                    
+                    if (amIHost) {
+                        hostStartBtn.style.display = "block";
+                    }
+                } else if (roomStatus === "jogando") {
+                    lobbyPanel.style.display = "none";
+                    if (myStatus === "jogando") {
+                        playerArea.style.opacity = "1";
+                        playerArea.style.pointerEvents = "all";
+                    }
+                    if (!data.timerStart) {
+                        timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
+                    }
+                }
+
                 // Monitoramento do Timer Battle Royale
                 if (data.timerStart && !timerInterval) {
                     iniciarContagemRegressivaBR(data.timerStart);
                 }
 
-                // Renderizar feed de Espectador em Tempo Real
+                // Renderizar feed de Espectador / Lista de Jogadores
                 if (data.jogadores) {
                     renderizarEspectadores(data.jogadores);
                 }
@@ -380,9 +445,30 @@
             window.addEventListener('keydown', handlePhysicalKeyboard);
         }
 
+        // Alternar Estado de Pronto no Lobby
+        function alternarPronto() {
+            isReady = !isReady;
+            const btnReady = document.getElementById('btn-ready-toggle');
+            if (isReady) {
+                btnReady.innerText = "Pronto! (Clique para cancelar)";
+                btnReady.style.background = "#48484a";
+            } else {
+                btnReady.innerText = "Marcar como Pronto";
+                btnReady.style.background = "var(--color-present)";
+            }
+            atualizarMeuStatusNoFirebase();
+        }
+
+        // Host força o início da partida
+        function forçarInicioPartida() {
+            database.ref('salas/' + roomId).update({
+                status: "jogando"
+            });
+        }
+
         // Processar Teclado Físico
         function handlePhysicalKeyboard(e) {
-            if (myStatus !== "jogando") return;
+            if (myStatus !== "jogando" || roomStatus !== "jogando") return;
             const key = e.key.toUpperCase();
             if (key === 'ENTER') pressKey('ENTER');
             else if (key === 'BACKSPACE') pressKey('BACKSPACE');
@@ -391,7 +477,7 @@
 
         // Processar Entrada de Teclas (Físico ou Virtual)
         function pressKey(key) {
-            if (myStatus !== "jogando") return;
+            if (myStatus !== "jogando" || roomStatus !== "jogando") return;
 
             if (key === 'BACKSPACE') {
                 if (currentCol > 0) {
@@ -414,15 +500,15 @@
             }
         }
 
-        // Validar e Colorir Palpite
+        // Validar e Colorir Palpite + Colorir o Teclado
         function verificarPalpite() {
             const palpiteArray = guesses[currentRow];
             const palavraDigitada = palpiteArray.join("").toUpperCase();
 
-            // VALIDAÇÃO RIGOROSA: Só aceita palpites que existem no dicionário
+            // VALIDAÇÃO COM O DICIONÁRIO INTEGRADO
             if (!DICIONARIO.includes(palavraDigitada)) {
-                alert(`⚠️ A palavra "${palavraDigitada}" não é aceita no jogo! Escreva uma palavra em português válida.`);
-                return;
+                alert(`⚠️ A palavra "${palavraDigitada}" não existe no dicionário! Escreva uma palavra válida.`);
+                return; 
             }
 
             let corretoContagem = 0;
@@ -456,6 +542,29 @@
                 }
             }
 
+            // ATUALIZAÇÃO DO TECLADO VIRTUAL DE BAIXO
+            for (let i = 0; i < 5; i++) {
+                const letra = palpiteArray[i];
+                const keyElement = document.getElementById(`key-${letra}`);
+                if (keyElement) {
+                    const statusLetra = gridStates[currentRow][i]; 
+                    
+                    if (statusLetra === 'c') {
+                        keyElement.classList.remove('present', 'absent');
+                        keyElement.classList.add('correct');
+                    } else if (statusLetra === 'p') {
+                        if (!keyElement.classList.contains('correct')) {
+                            keyElement.classList.remove('absent');
+                            keyElement.classList.add('present');
+                        }
+                    } else if (statusLetra === 'a') {
+                        if (!keyElement.classList.contains('correct') && !keyElement.classList.contains('present')) {
+                            keyElement.classList.add('absent');
+                        }
+                    }
+                }
+            }
+
             atualizarMeuStatusNoFirebase();
 
             // Condição de Vitória
@@ -463,14 +572,13 @@
                 myStatus = "ganhou";
                 atualizarMeuStatusNoFirebase();
                 
-                // Dispara o timer da sala na nuvem caso seja o primeiro a ganhar
                 database.ref('salas/' + roomId + '/timerStart').transaction((currentVal) => {
                     if (currentVal === null) {
                         return firebase.database.ServerValue.TIMESTAMP;
                     }
                 });
                 
-                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Agora assista aos seus oponentes sofrerem contra o tempo.");
+                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Assista ao desespero dos seus oponentes contra o relógio.");
                 return;
             }
 
@@ -487,7 +595,7 @@
             const msgElement = document.getElementById('timer-message');
             const timerElement = document.getElementById('timer-display');
             timerElement.style.display = "block";
-            msgElement.innerText = "ALGUÉM GANHOU! Corra contra o tempo!";
+            msgElement.innerText = "ALGUÉM ACERTOU! Corra contra o tempo!";
 
             timerInterval = setInterval(() => {
                 database.ref('.info/serverTimeOffset').once('value', (snapshot) => {
@@ -495,7 +603,7 @@
                     const estimatedServerTime = Date.now() + offset;
                     const segundosDecorridos = Math.floor((estimatedServerTime - timestampInicioServidor) / 1000);
                     
-                    const tempoFase1 = 120; // 2 minutos
+                    const tempoFase1 = 120; // 2 minutos padrão
                     
                     if (segundosDecorridos < tempoFase1) {
                         const tempoRestante = tempoFase1 - segundosDecorridos;
@@ -511,7 +619,7 @@
                         if (maxRowsAllowed < 0) maxRowsAllowed = 0;
 
                         timerElement.innerText = "TEMPO ESGOTADO!";
-                        msgElement.innerText = `Linhas deletadas! Máximo permitido: ${maxRowsAllowed}`;
+                        msgElement.innerText = `Linhas destruídas! Máximo permitido: ${maxRowsAllowed}`;
 
                         for (let r = 0; r < 6; r++) {
                             const row = document.getElementById(`row-${r}`);
@@ -521,18 +629,17 @@
                         }
 
                         if (currentRow >= maxRowsAllowed && myStatus === "jogando") {
-                            marcarComoDerrota("O tempo acabou e suas linhas foram destruídas!");
+                            marcarComoDerrota("O tempo expirou e suas linhas foram deletadas!");
                         }
                     }
                 });
             }, 1000);
         }
 
-        // Marcar Derrota
         function marcarComoDerrota(motivo) {
             myStatus = "perdeu";
             atualizarMeuStatusNoFirebase();
-            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}. Você agora entrou no Modo Espectador.`);
+            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}. Você entrou no Modo Espectador.`);
             document.getElementById('game-keyboard').style.opacity = "0.3";
             document.getElementById('game-keyboard').style.pointerEvents = "none";
         }
@@ -542,11 +649,11 @@
             database.ref('salas/' + roomId + '/jogadores/' + username).set({
                 status: myStatus,
                 linhaAtual: currentRow,
-                grid: gridStates
+                grid: gridStates,
+                ready: isReady
             });
         }
 
-        // Renderizar Feed Espectador
         function renderizarEspectadores(jogadoresObjeto) {
             const container = document.getElementById('spectator-list');
             container.innerHTML = "";
@@ -562,8 +669,12 @@
                 header.className = 'player-card-header';
                 
                 let statusLabel = "📝 Jogando";
-                if (pData.status === "ganhou") statusLabel = "👑 Venceu!";
-                if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
+                if (roomStatus === "lobby") {
+                    statusLabel = pData.ready ? "✅ Pronto" : "⏳ No Lobby";
+                } else {
+                    if (pData.status === "ganhou") statusLabel = "👑 Venceu!";
+                    if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
+                }
 
                 header.innerHTML = `<span>${player}</span><span>${statusLabel}</span>`;
                 card.appendChild(header);
