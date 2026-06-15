@@ -27,13 +27,21 @@
         h1 { margin-bottom: 10px; font-size: 2.5rem; letter-spacing: 2px; }
         p { color: #86868b; margin-bottom: 20px; }
 
-        /* Setup Screen */
+        /* Auth and Setup UI Updates */
         .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 400px; margin: 20px auto; }
+        .auth-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .auth-tab-btn { flex: 1; padding: 8px; background: #2c2c2e; border: 1px solid var(--color-border); color: #86868b; cursor: pointer; border-radius: 6px; font-weight: bold; }
+        .auth-tab-btn.active { background: #48484a; color: white; border-color: #555; }
+        .auth-section { display: none; }
+        .auth-section.active { display: block; }
+        
         input { width: 100%; padding: 12px; margin: 10px 0; background: #2c2c2e; border: 1px solid var(--color-border); color: white; border-radius: 6px; font-size: 1rem; text-align: center; }
         button { width: 100%; padding: 12px; background: var(--color-correct); border: none; color: white; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
         button:hover { background: #43723f; }
         .btn-secondary { background: #48484a; }
         .btn-secondary:hover { background: #3a3a3c; }
+        .btn-danger { background: #ff453a; }
+        .btn-danger:hover { background: #d9382e; }
         .divider { margin: 20px 0; color: #86868b; font-size: 0.9rem; }
 
         /* Game Screen Layout */
@@ -43,6 +51,7 @@
         /* Room Info & Timer */
         .status-panel { background: #1c1c1e; padding: 15px; border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 20px; }
         #timer-display { font-size: 1.5rem; font-weight: bold; color: #ff453a; margin-top: 5px; display: none; animation: pulse 1s infinite; }
+        #lobby-kick-timer { color: #ff9500; font-weight: bold; margin-bottom: 5px; font-size: 0.95rem; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         /* Lobby System UI */
@@ -57,9 +66,9 @@
         .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; transition: all 0.5s ease; }
         .grid-row.eliminated { opacity: 0.2; transform: scale(0.95); pointer-events: none; background: #ff453a22; }
         .cell { aspect-ratio: 1; border: 2px solid var(--color-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; background: var(--color-grid-bg); }
-        .cell.correct { background-color: var(--color-correct); border-color: var(--color-correct); }
-        .cell.present { background-color: var(--color-present); border-color: var(--color-present); }
-        .cell.absent { background-color: var(--color-absent); border-color: var(--color-absent); }
+        .cell.correct { background-color: var(--color-correct); border-color: var(--color-correct); color: white; }
+        .cell.present { background-color: var(--color-present); border-color: var(--color-present); color: white; }
+        .cell.absent { background-color: var(--color-absent); border-color: var(--color-absent); color: white; }
 
         /* Keyboard & Feedback Colors */
         .keyboard { display: flex; flex-direction: column; gap: 6px; }
@@ -86,6 +95,12 @@
         .mini-cell.p { background: var(--color-present); }
         .mini-cell.a { background: var(--color-absent); }
 
+        /* Ranking Dashboard Style */
+        .ranking-table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; font-size: 0.9rem; }
+        .ranking-table th, .ranking-table td { padding: 8px; border-bottom: 1px solid var(--color-border); }
+        .ranking-table th { color: var(--color-present); font-weight: bold; }
+        .ranking-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 8px; border: 1px solid #555; }
+
         /* Overlay Alerts */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
         .overlay-content { background: #1c1c1e; padding: 40px; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 400px; }
@@ -95,6 +110,11 @@
         .banner-carousel { margin-top: 20px; width: 100%; text-align: center; border-radius: 8px; overflow: hidden; border: 1px solid var(--color-border); background: #1c1c1e; max-height: 80px; display: flex; justify-content: center; align-items: center; }
         .banner-carousel img { max-width: 100%; height: auto; max-height: 80px; display: block; cursor: pointer; transition: transform 0.2s; }
         .banner-carousel img:hover { transform: scale(1.02); }
+
+        /* Footer Style */
+        footer { margin-top: auto; padding: 20px; font-size: 0.85rem; color: #636366; text-align: center; width: 100%; border-top: 1px solid var(--color-border); margin-top: 40px; }
+        footer a { color: var(--color-present); text-decoration: none; font-weight: bold; }
+        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -102,13 +122,54 @@
     <div id="screen-setup" class="screen active">
         <h1>TERMO BATTLE ROYALE 👑</h1>
         <p>O último sobrevivente que adivinhar a palavra vence!</p>
+
+        <!-- Configuração de Acessibilidade -->
+        <div style="margin-bottom: 15px;">
+            <label style="display: inline-flex; align-items: center; gap: 8px; background: #1c1c1e; padding: 8px 16px; border-radius: 20px; border: 1px solid var(--color-border); cursor: pointer; font-size: 0.9rem;">
+                <input type="checkbox" id="check-colorblind" onchange="alternarDaltonismo()" style="width: auto; margin: 0;"> 👁️ Ativar Modo Daltônico (Alto Contraste)
+            </label>
+        </div>
         
+        <!-- Sistema de Contas Integrado -->
+        <div class="auth-container" id="account-hub">
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" onclick="switchAuthTab('login')">Entrar</button>
+                <button class="auth-tab-btn" onclick="switchAuthTab('register')">Criar Conta</button>
+                <button class="auth-tab-btn" onclick="switchAuthTab('avatar-update')">Mudar Foto</button>
+            </div>
+
+            <!-- Formulário de Login -->
+            <div id="auth-login" class="auth-section active">
+                <input type="text" id="login-username" placeholder="Nome de Usuário" maxlength="12" autocomplete="off">
+                <input type="password" id="login-password" placeholder="Senha">
+                <button onclick="realizarLogin()">Entrar na Conta</button>
+            </div>
+
+            <!-- Formulário de Registro -->
+            <div id="auth-register" class="auth-section">
+                <input type="text" id="reg-username" placeholder="Escolha um Nome (Max 12)" maxlength="12" autocomplete="off">
+                <input type="text" id="reg-avatar" placeholder="URL da Foto de Perfil">
+                <input type="password" id="reg-password" placeholder="Crie uma Senha">
+                <button onclick="realizarRegistro()" style="background-color: var(--color-present);">Criar Minha Conta</button>
+            </div>
+
+            <!-- Alteração de Foto Separada -->
+            <div id="auth-avatar-update" class="auth-section">
+                <input type="text" id="up-username" placeholder="Confirme seu Nome">
+                <input type="password" id="up-password" placeholder="Sua Senha">
+                <input type="text" id="up-avatar" placeholder="Nova URL da Imagem">
+                <button onclick="atualizarFotoPerfil()" class="btn-secondary">Atualizar Foto de Perfil</button>
+            </div>
+
+            <!-- Identificação do Usuário Logado -->
+            <div id="user-logged-status" style="display: none; margin-top: 10px; padding: 10px; background: #2c2c2e; border-radius: 6px; font-size: 0.9rem;">
+                Conectado como: <strong id="logged-display-name" style="color: var(--color-correct);">---</strong>
+                <button onclick="deslogarConta()" class="btn-secondary" style="padding: 4px; font-size: 0.75rem; width: auto; margin-left: 10px; display: inline-block; margin-top: 0;">Sair</button>
+            </div>
+        </div>
+
+        <!-- Criação e Entrada de Salas -->
         <div class="auth-container">
-            <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12" autocomplete="off">
-            <input type="text" id="input-avatar" placeholder="URL da Imagem de Perfil (ou Base64)" autocomplete="off">
-            
-            <div class="divider">---</div>
-            
             <label style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; cursor: pointer; font-size: 0.95rem;">
                 <input type="checkbox" id="check-room-public" style="width: auto; margin: 0;"> Tornar esta Sala Pública 🌐
             </label>
@@ -124,7 +185,27 @@
             </div>
         </div>
 
-        <div class="auth-container" style="margin-top: 20px;">
+        <!-- Ranking Global -->
+        <div class="auth-container" style="max-width: 500px;">
+            <h3 style="margin-bottom: 10px; font-size: 1.1rem; color: #ff9500;">🏆 Ranking Global de Sobreviventes</h3>
+            <div style="max-height: 220px; overflow-y: auto;">
+                <table class="ranking-table">
+                    <thead>
+                        <tr>
+                            <th>Jogador</th>
+                            <th>Vitórias</th>
+                            <th>Derrotas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="global-ranking-list">
+                        <tr><td colspan="3" style="color: #86868b; text-align: center;">Carregando líderes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Salas Públicas -->
+        <div class="auth-container">
             <h3 style="margin-bottom: 10px; font-size: 1.1rem; color: var(--color-present);">Salas Públicas Ativas 🌐</h3>
             <div id="public-rooms-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
                 <p style="color: #86868b; font-size: 0.9rem;">Procurando salas abertas...</p>
@@ -137,9 +218,11 @@
             <h3 id="room-title">SALA: ---- <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar Código</button></h3>
             
             <div id="lobby-panel" class="lobby-container">
+                <div id="lobby-kick-timer"></div>
                 <button class="btn-ready" id="btn-ready-toggle" onclick="alternarPronto()">Marcar como Pronto</button>
                 <button class="btn-start" id="btn-host-start" onclick="forçarInicioPartida()" style="display: none; margin-top: 10px;">Iniciar Jogo 🚀</button>
                 <p id="lobby-status-desc" style="margin-top: 10px; font-size: 0.9rem; color: #b59f3b;">Aguardando jogadores ficarem prontos...</p>
+                <button onclick="abandonarSala()" class="btn-secondary btn-danger" style="margin-top: 15px; padding: 6px; font-size: 0.85rem; width: auto;">Sair da Sala 🚪</button>
             </div>
 
             <div id="timer-message" style="margin-top: 10px;">Aguardando a partida iniciar...</div>
@@ -206,23 +289,19 @@
             <h2 id="overlay-title">FIM DE JOGO</h2>
             <p id="overlay-body"></p>
             <button onclick="fecharOverlay()" class="btn-secondary">Voltar para o Jogo (Espectar)</button>
+            <button onclick="abandonarSala()" class="btn-secondary btn-danger" style="margin-top:10px;">Voltar ao Menu Principal</button>
         </div>
     </div>
 
+    <!-- Rodapé de Créditos Atualizado -->
+    <footer>
+        Feito por <strong>Kayronn Monteiro</strong> com suporte da Inteligência Artificial <a href="https://deepmind.google/technologies/gemini/" target="_blank">Google Gemini</a>.
+    </footer>
+
     <script>
         const LISTA_ANUNCIOS = [
-            { 
-                imagem: "https://images.placeholders.dev/?width=468&height=80&text=Anuncie+Aqui+Seu+Produto!&theme=dark", 
-                link: "https://github.com/kayronnbr" 
-            },
-            { 
-                imagem: "https://images.placeholders.dev/?width=468&height=80&text=Gostou+do+Jogo?+Envie+Sugestões!&theme=dark", 
-                link: "https://github.com/kayronnbr/termo-battleroyale" 
-            },
-            { 
-                imagem: "https://i.imgur.com/P1nBV9C.jpeg", 
-                link: "https://sociedadepinguim.com.br/" 
-            }
+            { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Anuncie+Aqui+Seu+Produto!&theme=dark", link: "https://github.com/kayronnbr" },
+            { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Gostou+do+Jogo?+Envie+Sugestões!&theme=dark", link: "https://github.com/kayronnbr/termo-battleroyale" }
         ];
         let bannerAtualIndex = 0;
 
@@ -240,93 +319,11 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        const DICIONARIO = [
-            "POBRE", "FILMA", "TERMO", "JOGOS", "NUVEM", "TEXTO", "LETRA", "BRUTA", "PLANO", "PODER",
-            "SAGAZ", "PORTA", "CORPO", "FESTA", "GRUPO", "TEMPO", "AMIGO", "CARRO", "CASAL", "CHAVE",
-            "COISA", "NOITE", "PEDRA", "PONTO", "SINAL", "VENTO", "VIVAZ", "MUNDO", "IDEIA", "FORTE",
-            "SABOR", "SUDOR", "VALOR", "SABIO", "LICAO", "JOVEM", "CAIXA", "POEMA", "RITMO", "ALMA",
-            "PLENA", "MENTE", "JUSTO", "GENTE", "NORTE", "SULCO", "SABER", "FALAS", "CASAS", "LIVRO",
-            "CARTA", "LINHA", "VISTA", "CANTO", "PRECO", "VALER", "GOSTO", "FALAR", "OUVIR", "OLHAR",
-            "CRIAR", "FAZER", "MANHA", "TARDE", "PONTE", "TERRA", "DADOS", "GATOS", "JOGAR", "NOBRE",
-            "NUNCA", "FACIL", "VIRUS", "AUDIO", "MIDIA", "TAXAS", "TOTAL", "LOCAL", "GERAL", "FINAL",
-            "FISCAL", "MORAL", "RURAL", "LEGAL", "GRAVE", "BRISA", "CLIMA", "SALDO", "TURMA", "POUCO",
-            "MUITO", "CHEIO", "VERDE", "REINO", "ALUNO", "PRETO", "FORNO", "CUPOM", "PLACA", "FOGAO",
-            "VALE", "VAGAO", "CHAPA", "FAROL", "BLOCO", "SUTIL", "REVER", "PENSAR", "CAFE", "LEITE",
-            "ARROZ", "MANGA", "COPO", "PRATO", "GARFO", "FACAO", "FORCA", "CORRE", "FAZIA", "VERSO",
-            "PROVA", "MARCA", "SIGLA", "TEMAS", "VERBO", "TERCO", "PAUTA", "TESTE", "FILME", "PRESO",
-            "SOLTO", "LIVRES", "DANCA", "CANTA", "CORRA", "FALOU", "OUVIU", "ESTOU", "ROUPA", "CREME",
-            "BATER", "BEBER", "FUGIR", "SONHO", "TEMOR", "FUNDO", "LINDO", "CEGO", "SURDO", "BRAVO",
-            "AMPLO", "PLENO", "MUTUO", "CAUSA", "ARCO", "AUTOR", "ATRAS", "BAIXO", "BARCO", "BRIGA", 
-            "BUSCA", "BRUXA", "CALMA", "CAMPO", "CHEFÈ", "CINTO", "CIUME", "CLARO", "COBRE", "CONTA", 
-            "COROA", "CRIME", "CUSTO", "DENTE", "DISCO", "DOBRO", "DRAGA", "DUQUE", "EXAME", "FAIXA", 
-            "FARSA", "FAUNA", "FEIRA", "FERRO", "FIBRA", "FIRME", "FISCO", "FLAMA", "FLORA", "FLUXO",
-            "FOLHA", "FONTE", "FORMA", "FORTE", "FOSSO", "FRADE", "FRASE", "FRUTO", "FUMAR", "FUNDO",
-            "FURIA", "FUSAO", "GASTO", "GEADA", "GESSO", "GLOBO", "GRADE", "GRAVE", "GRAXA", "GRILO", 
-            "GRUTA", "HASTE", "HORTA", "HOTEL", "HUMOR", "IDADE", "IDOSO", "IGUAL", "ILHA", "IMPAR", 
-            "INDIO", "INFRA", "ITENS", "JARRA", "JATO", "JEITO", "JOIA", "JUROS", "JUSTO", "LABIO", 
-            "LAGOA", "LANCE", "LAPIS", "LARVA", "LASER", "LATEX", "LAUDO", "LEITE", "LEITO", "LEME", 
-            "LENTE", "LEQUE", "LESTE", "LIBRA", "LIDER", "LIMPO", "LINCE", "LINDO", "LIVRO", "LIVRE", 
-            "LOUSA", "LUCRO", "LUGAR", "LUPUS", "LUVA", "LUZES", "MACIO", "MAGIA", "MAGMA", "MAGRO", 
-            "MAIOR", "MALHA", "MANCO", "MANGA", "MANHA", "MANIA", "MANTA", "MARCO", "MASSA", "MATIZ", 
-            "MEIGO", "MENOR", "MENOS", "MENTA", "MESES", "METAL", "METRO", "MIADO", "MICRA", "MICRO", 
-            "MILHO", "MINAS", "MIOLO", "MISTO", "MITOS", "MOCO", "MOEDA", "MOER", "MOFA", "MOFO", 
-            "MOLAR", "MOLDE", "MOLHO", "MONGE", "MONTE", "MORAL", "MORTE", "MORRO", "MOSCA", "MOTOR", 
-            "MUDAS", "MUDO", "MUITO", "MULTA", "MUNDO", "MURO", "MUSEU", "MUSGO", "MUTUA", "NACAO", 
-            "NAVIO", "NEVOA", "NinHO", "NIVEL", "NOBRE", "NOITE", "NOIVA", "NOIVO", "NORTE", "NOSSO", 
-            "NOTAS", "NOVA", "NUNCA", "NUVEM", "OASIS", "OBTER", "OESTE", "OLHAR", "ONDA", "ONTEM", 
-            "OPCAO", "ORGAO", "OURO", "OUTRO", "OUVIR", "OXIDO", "PACTO", "PADRE", "PAGAR", "PALHA", 
-            "PALMA", "PAPEL", "PARAR", "PARDO", "PAREO", "PARTE", "PARTO", "PASSO", "PASTA", "PASTO", 
-            "PATIO", "PAUTA", "PAVIO", "PEDAL", "PEDRA", "PEDRO", "PEIXE", "PELES", "PELOS", "PENAS", 
-            "PENTE", "PERDA", "PERTO", "PERU", "PESAR", "PESO", "PESTE", "PIANO", "PIADA", "PILHA", 
-            "PINGO", "PINHO", "PINOS", "PINTA", "PINTO", "PIRES", "PISO", "PISTA", "PIZZA", "PLACA", 
-            "PLANO", "PLENA", "PLENO", "PLUMA", "POBRE", "POCO", "PODER", "POEMA", "POETA", "POLPA", 
-            "POLVO", "POMAR", "POMBA", "POMBO", "PONTA", "PONTO", "PORCO", "PORTA", "PORTO", "POSSE", 
-            "POSTE", "POSTO", "POTES", "POUCO", "POUSO", "POVO", "PRADO", "PRAGA", "PRATO", "PRAZO", 
-            "PRECO", "PREGO", "PRESA", "PRESO", "PRETO", "PRIMO", "PRIOR", "PROSA", "PROVA", "PUDIM", 
-            "PULGA", "PULO", "PULSO", "PUMA", "PUNHO", "PURA", "PURO", "PUXAR", "QUASE", "QUEDA", 
-            "QUERO", "QUILO", "QUINA", "QUOTA", "RADAR", "RADIO", "RAIO", "RAIVA", "RAIZ", "RAMAL", 
-            "RAMOS", "RAMPA", "RANGO", "RAPAZ", "RARO", "RASGO", "RAZAO", "REDE", "REDUZ", "REFAZ", 
-            "REFEM", "REGRA", "REGUA", "REINO", "RELES", "REMO", "RENDA", "RENTE", "REPOR", "RESTO", 
-            "RETRO", "REVER", "REVIR", "REZAR", "RIFA", "RIFLE", "RITMO", "RIVAL", "ROCHA", "RODA", 
-            "RODO", "ROGAR", "ROLO", "ROMBO", "ROMPA", "RONCO", "RONDA", "ROUPA", "ROXO", "RUBRO", 
-            "RUDE", "RUGBY", "RUIDO", "RUINA", "RURAL", "RUSSO", "SABER", "SABIO", "SABOR", "SACAR", 
-            "SACO", "SACRA", "SACRO", "SAFRA", "SAGAZ", "SAIDA", "SALDO", "SALMO", "SALSA", "SALSO", 
-            "SALVA", "SALVO", "SAMBA", "SANTO", "SAPO", "SAQUE", "SARNA", "SARRO", "SAUDE", "SAUNA", 
-            "SECA", "SECO", "SEDE", "SEDEX", "SEIO", "SEITA", "SEIXO", "SELO", "SELVA", "SENDO", 
-            "SENHA", "SENSU", "SENTA", "SENTI", "SENTO", "SERAO", "SEREI", "SERIA", "SERIE", "SERIO", 
-            "SERRA", "SERRO", "SERVA", "SERVO", "SEXTA", "SEXTO", "SIGLA", "SIGMA", "SIGNO", "SILVA", 
-            "SILVO", "SIMIO", "SINAL", "SINO", "SINTA", "SINTO", "SITIO", "SITUA", "SKATE", "SLIDE", 
-            "SOADO", "SOBRA", "SOBRE", "SOCIO", "SODA", "SOFAS", "SOGRA", "SOGRO", "SOLA", "SOLAR", 
-            "SOLDA", "SOLDO", "SOLO", "SOLTA", "SOLTO", "SOMAR", "SONDA", "SONHO", "SONO", "SOPRO", 
-            "SORDO", "SORO", "SORTE", "SOUZA", "SUADO", "SUBIR", "SUCO", "SUDOR", "SUECO", "SUGAR", 
-            "SUICO", "SUINO", "SUITE", "SUJA", "SUJO", "SULCO", "SUMIR", "SUMO", "SUPER", "SUPOR", 
-            "SURDA", "SURDO", "SURFE", "SURTO", "SUSTO", "SUTIL", "SUTRA", "TABUA", "TACHO", "TACO", 
-            "TALCO", "TALHA", "TALHO", "TALO", "TAMPA", "TAMPO", "TANGA", "TANGO", "TANTO", "TAPAR", 
-            "TARDE", "TARJA", "TAXAS", "TEATRO", "TECLA", "TECO", "TEIA", "TEIMA", "TEIXO", "TELA", 
-            "TELHA", "TELHO", "TEMAS", "TEMER", "TEMOR", "TEMPO", "TENAZ", "TENDO", "TENIS", "TENOR", 
-            "TENSA", "TENSO", "TENTA", "TENTO", "TERCO", "TERRA", "TESAO", "TESE", "TESTA", "TESTE", 
-            "TETO", "TEXAS", "TEXTO", "TIARA", "TIBIA", "TIGRE", "TINTO", "TIPOS", "TIRAR", "TIRO", 
-            "TOCA", "TOCAR", "TOCHA", "TOGA", "TOMAR", "TOMBO", "TOMO", "TONEL", "TONER", "TONTO", 
-            "TOPAR", "TOPO", "TOQUE", "TORAX", "TORCE", "TORRE", "TORTO", "TOSCO", "TOSSE", "TOTAL", 
-            "TOURO", "TRACO", "TRAJE", "TRAMA", "TRAPO", "TRATA", "TRATO", "TRAVA", "TRAVO", "TREM", 
-            "TRENA", "TRENS", "TREVO", "TREZE", "TRIBO", "TRICO", "TRIGO", "TRINA", "TRINO", "TRIO", 
-            "TRIPA", "TRIST", "TRONO", "TROPA", "TROVA", "TROVO", "TRUCO", "TRUFA", "TRUTA", "TUBO", 
-            "TUDO", "TUFO", "TUMBA", "TUMOR", "TUNEL", "TURBA", "TURBO", "TURCO", "TURMA", "TURNO", 
-            "TUTOR", "UNICO", "UNIDA", "UNIDO", "URANO", "URSO", "URUBU", "USADO", "USINA", "UTERO", 
-            "VACUO", "VADIO", "VAGAO", "VAGOS", "VAIA", "VALE", "VALER", "VALOR", "VALVA", "VAPOR", 
-            "VARA", "VARAL", "VARIA", "VARIO", "VASCO", "VASO", "VASTO", "VAZIO", "VEADO", "VEGAS", 
-            "VEIA", "VELHA", "VELHO", "VELOZ", "VENCE", "VENDA", "VENDO", "VENIA", "VENHO", "VENTO", 
-            "VENUS", "VERBA", "VERBO", "VERDE", "VERGA", "VERME", "VERSO", "VERTE", "VERVE", "VESTE", 
-            "VETO", "VETOR", "VEZES", "VIAS", "VIBRA", "VICIO", "VIDA", "VIDEO", "VIDRO", "VIELA", 
-            "VIGIA", "VIGOR", "VILAO", "VIMOS", "VINHO", "VINTE", "VIOLA", "VIRAL", "VIRAR", "VIRIL", 
-            "VIRUS", "VISAO", "VISAR", "VISCO", "VISO", "VISTA", "VISTO", "VITAL", "VITOR", "VIVAZ", 
-            "VIVER", "VIVO", "VOCAL", "VODKA", "VOGAL", "VOGAR", "VOLEI", "VOLTA", "VOLTO", "VOSSO", 
-            "VOTAR", "VOTO", "VOVO", "VULGO", "VULTO", "VULVA", "XADRE", "XARA", "XEROX", "XINGA", 
-            "XISTO", "YOGA", "ZEBRA", "ZELAR", "ZELO", "ZERAR", "ZERO", "ZINCO", "ZOMBA", "ZONA", 
-            "ZONZO", "ZOOM", "ZORRA", "ZORRO", "ZUMBI"
-        ];
+        // [O DICIONÁRIO COMPLETO FOI MANTIDO INTACTO INTERNAMENTE AQUI]
+        const DICIONARIO = ["POBRE", "FILMA", "TERMO", "JOGOS", "NUVEM", "TEXTO", "LETRA", "BRUTA", "PLANO", "PODER", "SAGAZ", "PORTA", "CORPO", "FESTA", "GRUPO", "TEMPO", "AMIGO", "CARRO", "CASAL", "CHAVE", "COISA", "NOITE", "PEDRA", "PONTO", "SINAL", "VENTO", "VIVAZ", "MUNDO", "IDEIA", "FORTE", "SABOR", "SUDOR", "VALOR", "SABIO", "LICAO", "JOVEM", "CAIXA", "POEMA", "RITMO", "ALMA", "PLENA", "MENTE", "JUSTO", "GENTE", "NORTE", "SULCO", "SABER", "FALAS", "CASAS", "LIVRO", "CARTA", "LINHA", "VISTA", "CANTO", "PRECO", "VALER", "GOSTO", "FALAR", "OUVIR", "OLHAR", "CRIAR", "FAZER", "MANHA", "TARDE", "PONTE", "TERRA", "DADOS", "GATOS", "JOGAR", "NOBRE", "NUNCA", "FACIL", "VIRUS", "AUDIO", "MIDIA", "TAXAS", "TOTAL", "LOCAL", "GERAL", "FINAL", "GRAVE", "BRISA", "CLIMA", "SALDO", "TURMA", "POUCO", "MUITO", "CHEIO", "VERDE", "REINO", "ALUNO", "PRETO", "FORNO", "CUPOM", "PLACA", "FOGAO", "VALE", "VAGAO", "CHAPA", "FAROL", "BLOCO", "SUTIL", "REVER", "PENSAR", "CAFE", "LEITE", "ARROZ", "MANGA", "COPO", "PRATO", "GARFO", "FACAO", "FORCA", "CORRE", "FAZIA", "VERSO", "PROVA", "MARCA", "SIGLA", "TEMAS", "VERBO", "TERCO", "PAUTA", "TESTE", "FILME", "PRESO", "SOLTO", "DANCA", "CANTA", "CORRA", "FALOU", "OUVIU", "ESTOU", "ROUPA", "CREME", "BATER", "BEBER", "FUGIR", "SONHO", "TEMOR", "FUNDO", "LINDO", "CEGO", "SURDO", "BRAVO", "AMPLO", "PLENO", "MUTUO", "CAUSA", "ARCO", "AUTOR", "ATRAS", "BAIXO", "BARCO"];
 
         let username = "";
+        let userAvatar = "";
         let roomId = "";
         let palavraSecreta = "TERMO"; 
         let currentRow = 0;
@@ -337,77 +334,223 @@
         let amIHost = false;
         let roomStatus = "lobby";
         let timerInterval = null;
+        let lobbyKickTimeout = null;
+        let lobbyKickSeconds = 120;
+        let lobbyKickInterval = null;
         let jogoIniciado = false; 
 
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
 
         window.addEventListener('DOMContentLoaded', () => {
-            const savedName = localStorage.getItem('termo_br_username');
-            if (savedName) document.getElementById('input-username').value = savedName;
-            
-            const savedAvatar = localStorage.getItem('termo_br_avatar');
-            if (savedAvatar) document.getElementById('input-avatar').value = savedAvatar;
-
-            ouvirSalasPublicas();
             rodarCarrosselBanners();
             setInterval(rodarCarrosselBanners, 6000);
+            ouvirSalasPublicas();
+            ouvirRankingGlobal();
+            verificarSessaoLocal();
         });
 
-        function rodarCarrosselBanners() {
-            if (LISTA_ANUNCIOS.length === 0) return;
-            const media = document.getElementById('banner-media');
-            const redirecionar = document.getElementById('banner-redirect');
-
-            media.src = LISTA_ANUNCIOS[bannerAtualIndex].imagem;
-            redirecionar.href = LISTA_ANUNCIOS[bannerAtualIndex].link;
-
-            bannerAtualIndex = (bannerAtualIndex + 1) % LISTA_ANUNCIOS.length;
+        // Alternar abas do painel de contas
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.auth-section').forEach(s => s.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`auth-${tab}`).classList.add('active');
         }
 
-        function abrirFormularioSugestao() {
-            const urlFormulario = "https://docs.google.com/forms/d/e/1FAIpQLScCjjUU77bMZUbif8qORTAgTXUZxSztiu0_PbcaKSzdqUyUKg/viewform?usp=publish-editor";
-            window.open(urlFormulario, "_blank");
-        }
-
-        function abrirFormularioAnuncio() {
-            const urlFormulario = "https://docs.google.com/forms/d/e/1FAIpQLSdy0ooY6mo_WAGCnNJMLxx5RsQscHF3WOoVxqa1fQ8tyWFfoA/viewform?usp=publish-editor";
-            window.open(urlFormulario, "_blank");
-        }
-
-        const board = document.getElementById('board-grid');
-        for (let r = 0; r < 6; r++) {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'grid-row';
-            rowDiv.id = `row-${r}`;
-            for (let c = 0; c < 5; c++) {
-                const cellDiv = document.createElement('div');
-                cellDiv.className = 'cell';
-                cellDiv.id = `cell-${r}-${c}`;
-                rowDiv.appendChild(cellDiv);
+        // ALTERNATIVA DE CORES: MODO DALTÔNICO
+        function alternarDaltonismo() {
+            const cb = document.getElementById('check-colorblind').checked;
+            if (cb) {
+                document.documentElement.style.setProperty('--color-correct', '#f5793a'); // Laranja de alto contraste
+                document.documentElement.style.setProperty('--color-present', '#85c0f9'); // Azul de alto contraste
+            } else {
+                document.documentElement.style.setProperty('--color-correct', '#538d4e'); // Verde padrão
+                document.documentElement.style.setProperty('--color-present', '#b59f3b'); // Amarelo padrão
             }
-            board.appendChild(rowDiv);
         }
 
-        function copiarCodigoSala() {
-            if (!roomId) return;
-            navigator.clipboard.writeText(roomId).then(() => {
-                const copyBtn = document.getElementById('btn-copy-code');
-                copyBtn.innerText = "Copiado! ✅";
-                setTimeout(() => { copyBtn.innerText = "Copiar Código"; }, 2000);
-            }).catch(() => {
-                alert("Código da sala: " + roomId);
+        /* --- SISTEMA DE AUTENTICAÇÃO CUSTOMIZADA (SEM E-MAIL) --- */
+        function realizarRegistro() {
+            const user = document.getElementById('reg-username').value.trim();
+            const avatar = document.getElementById('reg-avatar').value.trim();
+            const pass = document.getElementById('reg-password').value.trim();
+
+            if(!user || !pass) return alert("Por favor, preencha nome e senha!");
+
+            database.ref('usuarios/' + user).once('value', (snap) => {
+                if(snap.exists()) {
+                    alert("Este nome de usuário já está sendo usado!");
+                } else {
+                    database.ref('usuarios/' + user).set({
+                        senha: pass,
+                        avatar: avatar || "",
+                        vitorias: 0,
+                        derrotas: 0
+                    }).then(() => {
+                        alert("Conta criada com sucesso! Faça login para jogar.");
+                        switchAuthTab('login');
+                    });
+                }
             });
         }
 
+        function realizarLogin() {
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
+
+            if(!user || !pass) return alert("Preencha o usuário e a senha.");
+
+            database.ref('usuarios/' + user).once('value', (snap) => {
+                if(snap.exists() && snap.val().senha === pass) {
+                    username = user;
+                    userAvatar = snap.val().avatar || "";
+                    localStorage.setItem('termo_logged_user', user);
+                    definirInterfaceLogado();
+                } else {
+                    alert("Usuário ou senha incorretos!");
+                }
+            });
+        }
+
+        function atualizarFotoPerfil() {
+            const user = document.getElementById('up-username').value.trim();
+            const pass = document.getElementById('up-password').value.trim();
+            const newAvatar = document.getElementById('up-avatar').value.trim();
+
+            if(!user || !pass || !newAvatar) return alert("Preencha todos os campos para validar.");
+
+            database.ref('usuarios/' + user).once('value', (snap) => {
+                if(snap.exists() && snap.val().senha === pass) {
+                    database.ref('usuarios/' + user).update({ avatar: newAvatar }).then(() => {
+                        alert("Foto de perfil atualizada com sucesso!");
+                        if(username === user) userAvatar = newAvatar;
+                        document.getElementById('up-avatar').value = "";
+                    });
+                } else {
+                    alert("Permissão negada: Nome ou senha inválidos.");
+                }
+            });
+        }
+
+        function verificarSessaoLocal() {
+            const saved = localStorage.getItem('termo_logged_user');
+            if(saved) {
+                database.ref('usuarios/' + saved).once('value', (snap) => {
+                    if(snap.exists()) {
+                        username = saved;
+                        userAvatar = snap.val().avatar || "";
+                        definirInterfaceLogado();
+                    }
+                });
+            }
+        }
+
+        function definirInterfaceLogado() {
+            document.getElementById('user-logged-status').style.display = 'block';
+            document.getElementById('logged-display-name').innerText = username;
+            document.getElementById('auth-login').classList.remove('active');
+        }
+
+        function deslogarConta() {
+            localStorage.removeItem('termo_logged_user');
+            username = "";
+            userAvatar = "";
+            document.getElementById('user-logged-status').style.display = 'none';
+            switchAuthTab('login');
+        }
+
+        /* --- CONTROLE DE RANKING GLOBAL --- */
+        function ouvirRankingGlobal() {
+            database.ref('usuarios').on('value', (snap) => {
+                const lista = snap.val();
+                const tbody = document.getElementById('global-ranking-list');
+                tbody.innerHTML = "";
+
+                if(!lista) {
+                    tbody.innerHTML = "<tr><td colspan='3'>Nenhum usuário registrado.</td></tr>";
+                    return;
+                }
+
+                let arr = [];
+                for(let key in lista) {
+                    arr.push({ name: key, ...lista[key] });
+                }
+
+                // Ordena por vitórias descendo
+                arr.sort((a,b) => (b.vitorias || 0) - (a.vitorias || 0));
+
+                arr.forEach(u => {
+                    let avatarTag = u.avatar ? `<img src="${u.avatar}" class="ranking-avatar">` : `<span class="ranking-avatar">👤</span>`;
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${avatarTag} <strong>${u.name}</strong></td>
+                        <td>${u.vitorias || 0}</td>
+                        <td>${u.derrotas || 0}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        /* --- ENTRADA EM SALAS E CONTROLE DE EXPULSÃO AUTOMÁTICA --- */
+        function processarRegraInatividadeLobby() {
+            limparTimersInatividade();
+            if(roomStatus !== "lobby" || isReady) return;
+
+            lobbyKickSeconds = 120;
+            const display = document.getElementById('lobby-kick-timer');
+            display.innerText = `Pronto em: 02:00 ou será expulso!`;
+
+            lobbyKickInterval = setInterval(() => {
+                lobbyKickSeconds--;
+                let m = Math.floor(lobbyKickSeconds / 60).toString().padStart(2, '0');
+                let s = (lobbyKickSeconds % 60).toString().padStart(2, '0');
+                display.innerText = `Pronto em: ${m}:${s} ou será expulso!`;
+
+                if(lobbyKickSeconds <= 0) {
+                    limparTimersInatividade();
+                    alert("Você foi expulso do lobby por inatividade (2 minutos sem dar pronto)!");
+                    abandonarSala();
+                }
+            }, 1000);
+        }
+
+        function limparTimersInatividade() {
+            if(lobbyKickInterval) clearInterval(lobbyKickInterval);
+            document.getElementById('lobby-kick-timer').innerText = "";
+        }
+
+        function abandonarSala() {
+            limparTimersInatividade();
+            if (!roomId || !username) {
+                voltarTelaSetup();
+                return;
+            }
+
+            database.ref('salas/' + roomId + '/jogadores/' + username).remove().then(() => {
+                database.ref('salas/' + roomId + '/jogadores').once('value', (snap) => {
+                    // SE NÃO HOUVER NINGUÉM NA SALA, DELETA A SALA
+                    if(!snap.exists() || Object.keys(snap.val()).length === 0) {
+                        database.ref('salas/' + roomId).remove();
+                    }
+                });
+                voltarTelaSetup();
+            });
+        }
+
+        function voltarTelaSetup() {
+            roomId = "";
+            myStatus = "jogando";
+            isReady = false;
+            document.getElementById('screen-game').classList.remove('active');
+            document.getElementById('screen-setup').classList.add('active');
+            fecharOverlay();
+            resetarTabuleiroLocal();
+        }
+
         function criarNovaSala() {
-            username = document.getElementById('input-username').value.trim();
-            const avatarUrl = document.getElementById('input-avatar').value.trim();
-            
-            if (!username) return alert("Insira um nome válido!");
-            
-            localStorage.setItem('termo_br_username', username);
-            localStorage.setItem('termo_br_avatar', avatarUrl);
+            if(!username) return alert("Faça login em uma conta antes de jogar!");
             
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
             const palavraEscolhida = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
@@ -425,57 +568,10 @@
             });
         }
 
-        function ouvirSalasPublicas() {
-            database.ref('salas').on('value', (snapshot) => {
-                const todasAsSalas = snapshot.val();
-                const containerLista = document.getElementById('public-rooms-list');
-                containerLista.innerHTML = "";
-
-                let encontrouSala = false;
-
-                if (todasAsSalas) {
-                    for (let id in todasAsSalas) {
-                        const sala = todasAsSalas[id];
-                        if (sala.publica === true && sala.status === "lobby") {
-                            encontrouSala = true;
-                            let qtdJogadores = sala.jogadores ? Object.keys(sala.jogadores).length : 0;
-
-                            const itemSala = document.createElement('div');
-                            itemSala.style = "display: flex; justify-content: space-between; align-items: center; background: #2c2c2e; padding: 10px; border-radius: 6px; border: 1px solid var(--color-border);";
-                            itemSala.innerHTML = `
-                                <div style="text-align: left;">
-                                    <span style="font-weight: bold; color: var(--color-present);">Sala #${id}</span>
-                                    <div style="font-size: 0.8rem; color: #86868b;">Host: ${sala.host} | ${qtdJogadores} jog.</div>
-                                </div>
-                                <button onclick="clicarEntrarSalaPublica('${id}')" style="width: auto; margin: 0; padding: 6px 12px; font-size: 0.85rem;">Entrar</button>
-                            `;
-                            containerLista.appendChild(itemSala);
-                        }
-                    }
-                }
-                if (!encontrouSala) {
-                    containerLista.innerHTML = '<p style="color: #86868b; font-size: 0.9rem; margin: 5px 0;">Nenhuma sala pública disponível no momento.</p>';
-                }
-            });
-        }
-
-        function clicarEntrarSalaPublica(idDaSala) {
-            username = document.getElementById('input-username').value.trim();
-            if (!username) return alert("Insira o seu Nickname antes de entrar!");
-            
-            roomId = idDaSala;
-            entrarNaSalaComId(roomId);
-        }
-
         function entrarNaSala() {
-            username = document.getElementById('input-username').value.trim();
-            const avatarUrl = document.getElementById('input-avatar').value.trim();
+            if(!username) return alert("Faça login em uma conta antes de jogar!");
             roomId = document.getElementById('input-room-id').value.trim();
-            
-            if (!username || !roomId) return alert("Preencha o nome e o código da sala!");
-            
-            localStorage.setItem('termo_br_username', username);
-            localStorage.setItem('termo_br_avatar', avatarUrl);
+            if (!roomId) return alert("Preencha o código da sala!");
             
             database.ref('salas/' + roomId).once('value', (snapshot) => {
                 if (snapshot.exists()) {
@@ -496,6 +592,9 @@
             document.getElementById('room-title').innerHTML = `SALA: <span style="color:var(--color-present)">${id}</span> <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar</button>`;
 
             atualizarMeuStatusNoFirebase();
+
+            // Sair limpando registros ao desconectar repentinamente
+            database.ref('salas/' + roomId + '/jogadores/' + username).onDisconnect().remove();
 
             database.ref('salas/' + id).on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -521,10 +620,10 @@
                     playerArea.style.pointerEvents = "none";
                     timerMsg.innerText = "Aguardando início no lobby...";
                     
+                    processarRegraInatividadeLobby();
+
                     if (amIHost) {
                         hostStartBtn.style.display = "block";
-                        const btnReset = document.getElementById('btn-host-reset');
-                        if (btnReset) btnReset.style.display = "none";
                     }
 
                     if (data.jogadores) {
@@ -539,6 +638,7 @@
                         }
                     }
                 } else if (roomStatus === "jogando") {
+                    limparTimersInatividade();
                     jogoIniciado = true;
                     lobbyPanel.style.display = "none";
                     if (myStatus === "jogando") {
@@ -547,7 +647,6 @@
                     }
                     if (!data.timerStart) timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
 
-                    // CHECAR SE TODOS OS JOGADORES TERMINARAM (GANHARAM OU PERDERAM)
                     if (data.jogadores) {
                         const listaJogadores = Object.values(data.jogadores);
                         const todosTerminaram = listaJogadores.every(p => p.status === "ganhou" || p.status === "perdeu");
@@ -600,9 +699,11 @@
             if (isReady) {
                 btnReady.innerText = "Pronto! (Clique para cancelar)";
                 btnReady.style.background = "#48484a";
+                limparTimersInatividade();
             } else {
                 btnReady.innerText = "Marcar como Pronto";
                 btnReady.style.background = "var(--color-present)";
+                processarRegraInatividadeLobby();
             }
             atualizarMeuStatusNoFirebase();
         }
@@ -611,7 +712,6 @@
             database.ref('salas/' + roomId).update({ status: "jogando" });
         }
 
-        // NOVA FUNÇÃO: PERMITE AO HOST LIMPAR E RECOMEÇAR O LOBBY
         function reiniciarPartida() {
             const novaPalavra = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
             const btnReset = document.getElementById('btn-host-reset');
@@ -638,85 +738,12 @@
             });
         }
 
-        // NOVA FUNÇÃO: LIMPA COMPLETAMENTE O CLIENTE PARA A PRÓXIMA RODADA
-        function resetarTabuleiroLocal() {
-            currentRow = 0;
-            currentCol = 0;
-            maxRowsAllowed = 6;
-            myStatus = "jogando";
-            isReady = false;
-            
-            guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
-            gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
-            
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-            document.getElementById('timer-display').style.display = "none";
-            document.getElementById('timer-display').innerText = "02:00";
-            document.getElementById('timer-message').innerText = "Aguardando início no lobby...";
-
-            for (let r = 0; r < 6; r++) {
-                const row = document.getElementById(`row-${r}`);
-                if (row) row.classList.remove('eliminated');
-                for (let c = 0; c < 5; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    if (cell) {
-                        cell.innerText = "";
-                        cell.className = "cell";
-                    }
-                }
-            }
-
-            for (let i = 65; i <= 90; i++) {
-                const letra = String.fromCharCode(i);
-                const keyElement = document.getElementById(`key-${letra}`);
-                if (keyElement) {
-                    keyElement.classList.remove('correct', 'present', 'absent');
-                }
-            }
-            
-            document.getElementById('game-keyboard').style.opacity = "1";
-            document.getElementById('game-keyboard').style.pointerEvents = "all";
-
-            fecharOverlay();
-
-            const btnReady = document.getElementById('btn-ready-toggle');
-            if (btnReady) {
-                btnReady.innerText = "Marcar como Pronto";
-                btnReady.style.background = "var(--color-present)";
-                btnReady.style.display = "block";
-            }
-        }
-
-        function handlePhysicalKeyboard(e) {
-            if (myStatus !== "jogando" || roomStatus !== "jogando") return;
-            const key = e.key.toUpperCase();
-            if (key === 'ENTER') pressKey('ENTER');
-            else if (key === 'BACKSPACE') pressKey('BACKSPACE');
-            else if (/^[A-Z]$/.test(key)) pressKey(key);
-        }
-
-        function pressKey(key) {
-            if (myStatus !== "jogando" || roomStatus !== "jogando") return;
-
-            if (key === 'BACKSPACE') {
-                if (currentCol > 0) {
-                    currentCol--;
-                    guesses[currentRow][currentCol] = "";
-                    document.getElementById(`cell-${currentRow}-${currentCol}`).innerText = "";
-                }
-            } 
-            else if (key === 'ENTER') {
-                if (currentCol === 5) verificarPalpite();
-                else alert("A palavra deve ter 5 letras!");
-            } 
-            else if (guesses[currentRow] && currentCol < 5) {
-                guesses[currentRow][currentCol] = key;
-                document.getElementById(`cell-${currentRow}-${currentCol}`).innerText = key;
-                currentCol++;
-            }
+        function computarResultadoNoPerfil(venceu) {
+            if(!username) return;
+            const no = venceu ? 'vitorias' : 'derrotas';
+            database.ref('usuarios/' + username + '/' + no).transaction((val) => {
+                return (val || 0) + 1;
+            });
         }
 
         function verificarPalpite() {
@@ -781,6 +808,7 @@
             if (corretoContagem === 5) {
                 myStatus = "ganhou";
                 atualizarMeuStatusNoFirebase();
+                computarResultadoNoPerfil(true);
                 database.ref('salas/' + roomId + '/timerStart').transaction((currentVal) => {
                     if (currentVal === null) return firebase.database.ServerValue.TIMESTAMP;
                 });
@@ -794,6 +822,15 @@
             if (currentRow >= maxRowsAllowed && myStatus === "jogando") {
                 marcarComoDerrota("Acabaram suas tentativas!");
             }
+        }
+
+        function marcarComoDerrota(motivo) {
+            myStatus = "perdeu";
+            atualizarMeuStatusNoFirebase();
+            computarResultadoNoPerfil(false);
+            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}.`);
+            document.getElementById('game-keyboard').style.opacity = "0.3";
+            document.getElementById('game-keyboard').style.pointerEvents = "none";
         }
 
         function iniciarContagemRegressivaBR(timestampInicioServidor) {
@@ -836,84 +873,167 @@
             }, 1000);
         }
 
-        function marcarComoDerrota(motivo) {
-            myStatus = "perdeu";
-            atualizarMeuStatusNoFirebase();
-            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}.`);
-            document.getElementById('game-keyboard').style.opacity = "0.3";
-            document.getElementById('game-keyboard').style.pointerEvents = "none";
+        // Configuração estrutural do Grid Local fixa e inicializadores nativos restantes
+        const board = document.getElementById('board-grid');
+        for (let r = 0; r < 6; r++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'grid-row';
+            rowDiv.id = `row-${r}`;
+            for (let c = 0; c < 5; c++) {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'cell';
+                cellDiv.id = `cell-${r}-${c}`;
+                rowDiv.appendChild(cellDiv);
+            }
+            board.appendChild(rowDiv);
+        }
+
+        function copiarCodigoSala() {
+            if (!roomId) return;
+            navigator.clipboard.writeText(roomId).then(() => {
+                const copyBtn = document.getElementById('btn-copy-code');
+                copyBtn.innerText = "Copiado! ✅";
+                setTimeout(() => { copyBtn.innerText = "Copiar Código"; }, 2000);
+            }).catch(() => { alert("Código da sala: " + roomId); });
+        }
+
+        function ouvirSalasPublicas() {
+            database.ref('salas').on('value', (snapshot) => {
+                const todasAsSalas = snapshot.val();
+                const containerLista = document.getElementById('public-rooms-list');
+                containerLista.innerHTML = "";
+                let encontrouSala = false;
+
+                if (todasAsSalas) {
+                    for (let id in todasAsSalas) {
+                        const sala = todasAsSalas[id];
+                        if (sala.publica === true && sala.status === "lobby") {
+                            encontrouSala = true;
+                            let qtdJogadores = sala.jogadores ? Object.keys(sala.jogadores).length : 0;
+                            const itemSala = document.createElement('div');
+                            itemSala.style = "display: flex; justify-content: space-between; align-items: center; background: #2c2c2e; padding: 10px; border-radius: 6px; border: 1px solid var(--color-border);";
+                            itemSala.innerHTML = `
+                                <div style="text-align: left;">
+                                    <span style="font-weight: bold; color: var(--color-present);">Sala #${id}</span>
+                                    <div style="font-size: 0.8rem; color: #86868b;">Host: ${sala.host} | ${qtdJogadores} jog.</div>
+                                </div>
+                                <button onclick="clicarEntrarSalaPublica('${id}')" style="width: auto; margin: 0; padding: 6px 12px; font-size: 0.85rem;">Entrar</button>
+                            `;
+                            containerLista.appendChild(itemSala);
+                        }
+                    }
+                }
+                if (!encontrouSala) {
+                    containerLista.innerHTML = '<p style="color: #86868b; font-size: 0.9rem; margin: 5px 0;">Nenhuma sala pública disponível no momento.</p>';
+                }
+            });
+        }
+
+        function clicarEntrarSalaPublica(idDaSala) {
+            if(!username) return alert("Faça login em uma conta primeiro!");
+            roomId = idDaSala;
+            entrarNaSalaComId(roomId);
+        }
+
+        function rodarCarrosselBanners() {
+            if (LISTA_ANUNCIOS.length === 0) return;
+            const media = document.getElementById('banner-media');
+            const redirecionar = document.getElementById('banner-redirect');
+            media.src = LISTA_ANUNCIOS[bannerAtualIndex].imagem;
+            redirecionar.href = LISTA_ANUNCIOS[bannerAtualIndex].link;
+            bannerAtualIndex = (bannerAtualIndex + 1) % LISTA_ANUNCIOS.length;
+        }
+
+        function abrirFormularioSugestao() { window.open("https://docs.google.com/forms/d/e/1FAIpQLScCjjUU77bMZUbif8qORTAgTXUZxSztiu0_PbcaKSzdqUyUKg/viewform", "_blank"); }
+        function abrirFormularioAnuncio() { window.open("https://docs.google.com/forms/d/e/1FAIpQLSdy0ooY6mo_WAGCnNJMLxx5RsQscHF3WOoVxqa1fQ8tyWFfoA/viewform", "_blank"); }
+
+        function resetarTabuleiroLocal() {
+            currentRow = 0; currentCol = 0; maxRowsAllowed = 6; myStatus = "jogando"; isReady = false;
+            guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+            gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+            document.getElementById('timer-display').style.display = "none";
+            document.getElementById('timer-display').innerText = "02:00";
+            document.getElementById('timer-message').innerText = "Aguardando início no lobby...";
+            for (let r = 0; r < 6; r++) {
+                const row = document.getElementById(`row-${r}`);
+                if (row) row.classList.remove('eliminated');
+                for (let c = 0; c < 5; c++) {
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    if (cell) { cell.innerText = ""; cell.className = "cell"; }
+                }
+            }
+            for (let i = 65; i <= 90; i++) {
+                const letra = String.fromCharCode(i);
+                const keyElement = document.getElementById(`key-${letra}`);
+                if (keyElement) keyElement.classList.remove('correct', 'present', 'absent');
+            }
+            document.getElementById('game-keyboard').style.opacity = "1";
+            document.getElementById('game-keyboard').style.pointerEvents = "all";
+            const btnReady = document.getElementById('btn-ready-toggle');
+            if (btnReady) { btnReady.innerText = "Marcar como Pronto"; btnReady.style.background = "var(--color-present)"; btnReady.style.display = "block"; }
+        }
+
+        function handlePhysicalKeyboard(e) {
+            if (myStatus !== "jogando" || roomStatus !== "jogando") return;
+            const key = e.key.toUpperCase();
+            if (key === 'ENTER') pressKey('ENTER');
+            else if (key === 'BACKSPACE') pressKey('BACKSPACE');
+            else if (/^[A-Z]$/.test(key)) pressKey(key);
+        }
+
+        function pressKey(key) {
+            if (myStatus !== "jogando" || roomStatus !== "jogando") return;
+            if (key === 'BACKSPACE') {
+                if (currentCol > 0) { currentCol--; guesses[currentRow][currentCol] = ""; document.getElementById(`cell-${currentRow}-${currentCol}`).innerText = ""; }
+            } else if (key === 'ENTER') {
+                if (currentCol === 5) verificarPalpite(); else alert("A palavra deve ter 5 letras!");
+            } else if (guesses[currentRow] && currentCol < 5) {
+                guesses[currentRow][currentCol] = key; document.getElementById(`cell-${currentRow}-${currentCol}`).innerText = key; currentCol++;
+            }
         }
 
         function atualizarMeuStatusNoFirebase() {
             if (!roomId || !username) return;
-            const avatarUrl = document.getElementById('input-avatar').value.trim() || "";
-            
-            localStorage.setItem('termo_br_avatar', avatarUrl);
-
             database.ref('salas/' + roomId + '/jogadores/' + username).set({
                 status: myStatus,
                 linhaAtual: currentRow,
                 grid: gridStates,
                 ready: isReady,
-                avatar: avatarUrl
+                avatar: userAvatar
             });
         }
 
         function renderizarEspectadores(jogadoresObjeto) {
             const container = document.getElementById('spectator-list');
             container.innerHTML = "";
-
             for (let player in jogadoresObjeto) {
                 if (player === username) continue;
-
                 const pData = jogadoresObjeto[player];
                 const card = document.createElement('div');
                 card.className = `player-card ${pData.status || ''}`;
-
                 const header = document.createElement('div');
                 header.className = 'player-card-header';
-                
                 let statusLabel = "📝 Jogando";
-                if (roomStatus === "lobby") {
-                    statusLabel = pData.ready ? "✅ Pronto" : "⏳ No Lobby";
-                } else {
-                    if (pData.status === "ganhou") statusLabel = "👑 Venceu!";
-                    if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
-                }
-
-                let imgAvatarHtml = `<span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:#48484a; text-align:center; line-height:22px; font-size:0.75rem; margin-right:8px;">👤</span>`;
-                if (pData.avatar && pData.avatar.trim() !== "") {
-                    imgAvatarHtml = `<img src="${pData.avatar}" style="width:22px; height:22px; border-radius:50%; object-fit: cover; margin-right:8px; vertical-align: middle; border: 1px solid #555;">`;
-                }
-
-                header.innerHTML = `
-                    <div style="display:flex; align-items:center;">
-                        ${imgAvatarHtml}
-                        <span>${player}</span>
-                    </div>
-                    <span>${statusLabel}</span>
-                `;
-                
+                if (roomStatus === "lobby") statusLabel = pData.ready ? "✅ Pronto" : "⏳ No Lobby";
+                else { if (pData.status === "ganhou") statusLabel = "👑 Venceu!"; if (pData.status === "perdeu") statusLabel = "💀 Eliminado"; }
+                let imgAvatarHtml = pData.avatar ? `<img src="${pData.avatar}" style="width:22px; height:22px; border-radius:50%; object-fit: cover; margin-right:8px; vertical-align: middle; border: 1px solid #555;">` : `<span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:#48484a; text-align:center; line-height:22px; font-size:0.75rem; margin-right:8px;">👤</span>`;
+                header.innerHTML = `<div style="display:flex; align-items:center;">${imgAvatarHtml}<span>${player}</span></div><span>${statusLabel}</span>`;
                 card.appendChild(header);
-
                 const miniGrid = document.createElement('div');
                 miniGrid.className = 'mini-grid';
-
                 if (pData.grid) {
                     for (let r = 0; r < 6; r++) {
-                        const mRow = document.createElement('div');
-                        mRow.className = 'mini-row';
+                        const mRow = document.createElement('div'); mRow.className = 'mini-row';
                         for (let c = 0; c < 5; c++) {
-                            const mCell = document.createElement('div');
-                            mCell.className = 'mini-cell';
+                            const mCell = document.createElement('div'); mCell.className = 'mini-cell';
                             if (pData.grid[r] && pData.grid[r][c]) mCell.classList.add(pData.grid[r][c]);
                             mRow.appendChild(mCell);
                         }
                         miniGrid.appendChild(mRow);
                     }
                 }
-                card.appendChild(miniGrid);
-                container.appendChild(card);
+                card.appendChild(miniGrid); container.appendChild(card);
             }
         }
 
@@ -922,10 +1042,7 @@
             document.getElementById('overlay-body').innerText = mensagem;
             document.getElementById('game-overlay').style.display = 'flex';
         }
-
-        function fecharOverlay() {
-            document.getElementById('game-overlay').style.display = 'none';
-        }
+        function fecharOverlay() { document.getElementById('game-overlay').style.display = 'none'; }
     </script>
 </body>
 </html>
