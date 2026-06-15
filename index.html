@@ -25,7 +25,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--color-bg); color: var(--color-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { background-color: var(--color-bg); color: var(--color-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; transition: background-color 0.5s ease; }
         
         .screen { display: none; width: 100%; max-width: 900px; text-align: center; }
         .screen.active { display: block; }
@@ -68,8 +68,8 @@
         .btn-start { background: var(--color-correct); font-size: 1.1rem; }
 
         /* Wordle Grid */
-        .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; }
-        .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; transition: all 0.5s ease; }
+        .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; transition: transform 0.1s ease; }
+        .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; transition: all 0.5s ease; position: relative; }
         .grid-row.eliminated { opacity: 0.2; transform: scale(0.95); pointer-events: none; background: #ff453a22; }
         .cell { aspect-ratio: 1; border: 2px solid var(--color-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; background: var(--color-grid-bg); }
         .cell.correct { background-color: var(--color-correct); border-color: var(--color-correct); color: white; }
@@ -109,7 +109,7 @@
 
         /* Overlay Alerts */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
-        .overlay-content { background: #1c1c1e; padding: 40px; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 400px; }
+        .overlay-content { background: #1c1c1e; padding: 40px; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 400px; transition: all 0.3s ease; }
         .overlay h2 { font-size: 2rem; margin-bottom: 10px; }
 
         /* Banner de Anúncios */
@@ -121,6 +121,85 @@
         footer { margin-top: auto; padding: 20px; font-size: 0.85rem; color: #636366; text-align: center; width: 100%; border-top: 1px solid var(--color-border); margin-top: 40px; }
         footer a { color: var(--color-present); text-decoration: none; font-weight: bold; }
         footer a:hover { text-decoration: underline; }
+
+        /* ========================================================
+           SISTEMA DE ANIMAÇÕES IMPACTANTES E CHAMATIVAS (NOVAS)
+           ======================================================== */
+        
+        /* 1. Animação de Início de Partida (Letreiro Splash) */
+        @keyframes splashIn {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-15deg); opacity: 0; }
+            40% { transform: translate(-50%, -50%) scale(1.4) rotate(10deg); opacity: 1; }
+            60% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; filter: blur(10px); }
+        }
+        .splash-start-title {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 3.8rem; font-weight: 900; color: #ff9500;
+            text-shadow: 0 0 20px #ff9500, 0 0 40px #ff453a;
+            z-index: 9999; pointer-events: none;
+            animation: splashIn 1.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            font-family: 'Impact', sans-serif; letter-spacing: 3px; text-align: center; width: 100%;
+        }
+
+        /* Tremor Geral da Tela/Grid */
+        @keyframes screenShake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-2px, -3px) rotate(-1deg); }
+            20% { transform: translate(-4px, 0px) rotate(1deg); }
+            30% { transform: translate(0px, 3px) rotate(0deg); }
+            40% { transform: translate(3px, -1px) rotate(1deg); }
+            50% { transform: translate(-2px, 3px) rotate(-1deg); }
+            60% { transform: translate(-4px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 2px) rotate(-1deg); }
+            80% { transform: translate(-2px, -2px) rotate(1deg); }
+            90% { transform: translate(3px, 3px) rotate(0deg); }
+            100% { transform: translate(1px, -1px) rotate(0deg); }
+        }
+        .apply-shake { animation: screenShake 0.4s ease-in-out; }
+
+        /* 2. Animação de Dano na Linha Removida/Concluída com erro */
+        @keyframes rowDamageEffect {
+            0% { transform: scale(1); background-color: rgba(255, 69, 58, 0.6); box-shadow: 0 0 30px #ff453a; }
+            15% { transform: translateX(-15px) scale(1.03); }
+            30% { transform: translateX(15px); }
+            45% { transform: translateX(-10px); }
+            60% { transform: translateX(10px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: scale(1); background-color: transparent; box-shadow: none; }
+        }
+        .row-damage-anim { animation: rowDamageEffect 0.55s ease-in-out; z-index: 10; }
+
+        /* 3. Animações de Vitória */
+        @keyframes winPulse {
+            0% { box-shadow: 0 0 25px 5px rgba(83, 141, 78, 0.6); transform: scale(1); }
+            50% { box-shadow: 0 0 50px 25px rgba(83, 141, 78, 0.9); transform: scale(1.04); }
+            100% { box-shadow: 0 0 25px 5px rgba(83, 141, 78, 0.6); transform: scale(1); }
+        }
+        .overlay-win { animation: winPulse 1.4s infinite; border: 4px solid var(--color-correct) !important; background: #142416 !important; }
+        
+        @keyframes winBackground {
+            0% { background-color: #121213; }
+            50% { background-color: #173019; }
+            100% { background-color: #121213; }
+        }
+        .body-win-active { animation: winBackground 2s infinite; }
+
+        /* 4. Animações de Derrota */
+        @keyframes losePulse {
+            0% { box-shadow: 0 0 25px 5px rgba(255, 69, 58, 0.6); transform: scale(1); }
+            50% { box-shadow: 0 0 50px 25px rgba(255, 69, 58, 0.9); transform: scale(1.04); }
+            100% { box-shadow: 0 0 25px 5px rgba(255, 69, 58, 0.6); transform: scale(1); }
+        }
+        .overlay-lose { animation: losePulse 1.4s infinite; border: 4px solid #ff453a !important; background: #2b1414 !important; }
+        
+        @keyframes loseBackground {
+            0% { background-color: #121213; }
+            50% { background-color: #331414; }
+            100% { background-color: #121213; }
+        }
+        .body-lose-active { animation: loseBackground 2s infinite; }
+
     </style>
 </head>
 <body>
@@ -282,7 +361,7 @@
     </div>
 
     <div id="game-overlay" class="overlay">
-        <div class="overlay-content">
+        <div class="overlay-content" id="overlay-wrapper">
             <h2 id="overlay-title">FIM DE JOGO</h2>
             <p id="overlay-body"></p>
             <button onclick="fecharOverlay()" class="btn-secondary">Voltar para o Jogo (Espectar)</button>
@@ -444,6 +523,7 @@
         let timerInterval = null;
         let countdownSeconds = 120;
         let roomListener = null;
+        let jogoIniciado = false;
 
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
@@ -541,7 +621,7 @@
                 if(userData && userData.password === p) {
                     database.ref('users/' + u + '/avatar').set(av).then(() => {
                         if(username === u) userAvatar = av;
-                        alert("Foto de perfil atualizada!");
+                        alert("Foto de perfil updated!");
                     });
                 } else {
                     alert("Credenciais incorretas.");
@@ -691,6 +771,17 @@
                     document.getElementById('timer-message').innerText = "Adivinhe a palavra!";
                     document.getElementById('timer-display').style.display = 'block';
                     atualizarVisualTimer(room.tempoRestante);
+
+                    // --- [ANIMAÇÃO] INÍCIO DA PARTIDA CHAMATIVA ---
+                    const splash = document.createElement('div');
+                    splash.className = 'splash-start-title';
+                    splash.innerText = 'PARTIDA INICIADA! ⚔️';
+                    document.body.appendChild(splash);
+                    setTimeout(() => splash.remove(), 1600);
+
+                    const gridContainer = document.getElementById('board-grid');
+                    gridContainer.classList.add('apply-shake');
+                    setTimeout(() => gridContainer.classList.remove('apply-shake'), 400);
                 }
 
                 if(room.status === 'encerrado') {
@@ -861,9 +952,18 @@
                 database.ref(`rooms/${roomId}/status`).set("encerrado");
                 database.ref(`rooms/${roomId}/vencedor`).set(username);
                 computarPontuacaoFinal(true);
+
+                // --- [ANIMAÇÃO] VITÓRIA CHAMATIVA ---
+                document.body.classList.add('body-win-active');
                 exibirOverlayFimJogo("VITÓRIA! 👑", "Você acertou a palavra secreta e sobreviveu ao Battle Royale!");
+                document.getElementById('overlay-wrapper').className = 'overlay-content overlay-win';
                 return;
             }
+
+            // --- [ANIMAÇÃO] DANO/LINHA CONCLUÍDA SEM ACERTAR A PALAVRA ---
+            const linhaAlvo = document.getElementById(`row-${currentRow}`);
+            linhaAlvo.classList.add('row-damage-anim');
+            setTimeout(() => linhaAlvo.classList.remove('row-damage-anim'), 600);
 
             currentRow++;
             currentCol = 0;
@@ -874,7 +974,14 @@
                 document.getElementById(`row-${currentRow-1}`).classList.add('eliminated');
                 verificarSeTodosPerderam();
                 computarPontuacaoFinal(false);
+
+                // --- [ANIMAÇÃO] DERROTA CHAMATIVA ---
+                document.body.classList.add('body-lose-active');
+                document.getElementById('board-grid').classList.add('apply-shake');
+                setTimeout(() => document.getElementById('board-grid').classList.remove('apply-shake'), 400);
+
                 exibirOverlayFimJogo("ELIMINADO 💀", `Suas chances acabaram! A palavra era: ${gabarito}`);
+                document.getElementById('overlay-wrapper').className = 'overlay-content overlay-lose';
             }
         }
 
@@ -898,7 +1005,12 @@
                 myStatus = "perdeu";
                 database.ref(`rooms/${roomId}/players/${username}/status`).set("perdeu");
                 computarPontuacaoFinal(false);
+
+                // --- [ANIMAÇÃO] DERROTA POR TEMPO ---
+                document.body.classList.add('body-lose-active');
                 exibirOverlayFimJogo("TEMPO ESGOTADO! ⏱️", `O tempo acabou. A palavra secreta era: ${palavraSecreta}`);
+                document.getElementById('overlay-wrapper').className = 'overlay-content overlay-lose';
+
                 verificarSeTodosPerderam();
             }
         }
@@ -933,6 +1045,9 @@
 
         function fecharOverlay() {
             document.getElementById('game-overlay').style.display = 'none';
+            // Reseta classes do wrapper de efeitos
+            document.getElementById('overlay-wrapper').className = 'overlay-content';
+            document.body.classList.remove('body-win-active', 'body-lose-active');
         }
 
         function resetarEstadoJogo() {
@@ -949,6 +1064,7 @@
             document.getElementById('timer-message').innerText = "Aguardando a partida iniciar...";
             document.getElementById('btn-ready-toggle').innerText = "Marcar como Pronto";
             document.getElementById('btn-ready-toggle').style.background = "var(--color-present)";
+            
             fecharOverlay();
             inicializarEstruturaGrid();
             
