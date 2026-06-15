@@ -908,7 +908,7 @@
             const snap = await database.ref(`rooms/${roomId}/palavraSecreta`).once('value');
             let txt = "???";
             if(snap.exists()) txt = atob(snap.val()).toUpperCase();
-            let msg = `A partida foi encerrada. O vencedor foi ${vencedor || "Ninguém"}. A palavra era: ${txt}`;
+            let msg = `A partida foi encerrada. A palavra era: ${txt}`;
             exibirOverlayFimJogo("PARTIDA ENCERRADA", msg);
         }
 
@@ -1061,15 +1061,24 @@
                 const p = playersObj[k];
                 const card = document.createElement('div');
                 card.className = `player-card ${p.status === 'ganhou' ? 'ganhou' : (p.status === 'perdeu' ? 'perdeu' : '')}`;
-                
-                let miniGridHTML = `<div class="mini-grid">`;
+
                 const rows = p.gridStates ? p.gridStates.split('|') : [];
+                const letrasRows = p.gridLetras ? p.gridLetras.split('|') : [];
+                const mostrarLetras = (myStatus === 'ganhou' || myStatus === 'perdeu');
+
+                let miniGridHTML = `<div class="mini-grid">`;
                 for(let i=0; i<6; i++) {
                     miniGridHTML += `<div class="mini-row">`;
                     const estadosLinha = rows[i] ? rows[i].split(',') : [];
+                    const letrasLinha = letrasRows[i] ? letrasRows[i].split(',') : [];
                     for(let j=0; j<5; j++) {
-                        const estado = estadosLinha[j] || ''; 
-                        miniGridHTML += `<div class="mini-cell ${estado}"></div>`;
+                        const estado = estadosLinha[j] || '';
+                        const letra = letrasLinha[j] || '';
+                        if(mostrarLetras && letra) {
+                            miniGridHTML += `<div class="mini-cell ${estado}" style="font-size:8px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:white;">${letra}</div>`;
+                        } else {
+                            miniGridHTML += `<div class="mini-cell ${estado}"></div>`;
+                        }
                     }
                     miniGridHTML += `</div>`;
                 }
@@ -1245,7 +1254,11 @@
 
         function enviarEstadoGridFirebase() {
             let stringFormatada = gridStates.map(row => row.join(',')).join('|');
-            database.ref(`rooms/${roomId}/players/${username}/gridStates`).set(stringFormatada);
+            let letrasFormatadas = guesses.map(row => row.join(',')).join('|');
+            database.ref(`rooms/${roomId}/players/${username}`).update({
+                gridStates: stringFormatada,
+                gridLetras: letrasFormatadas
+            });
         }
 
         function verificarSeTodosPerderam() {
