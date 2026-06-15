@@ -90,6 +90,11 @@
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
         .overlay-content { background: #1c1c1e; padding: 40px; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 400px; }
         .overlay h2 { font-size: 2rem; margin-bottom: 10px; }
+
+        /* Banner de Anúncios */
+        .banner-carousel { margin-top: 20px; width: 100%; text-align: center; border-radius: 8px; overflow: hidden; border: 1px solid var(--color-border); background: #1c1c1e; max-height: 80px; display: flex; justify-content: center; align-items: center; }
+        .banner-carousel img { max-width: 100%; height: auto; max-height: 80px; display: block; cursor: pointer; transition: transform 0.2s; }
+        .banner-carousel img:hover { transform: scale(1.02); }
     </style>
 </head>
 <body>
@@ -100,6 +105,10 @@
         
         <div class="auth-container">
             <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12" autocomplete="off">
+            
+            <!-- Campo de URL de Perfil Reintroduzido -->
+            <input type="text" id="input-avatar" placeholder="URL da Imagem de Perfil (ou Base64)" autocomplete="off">
+            
             <div class="divider">---</div>
             
             <label style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; cursor: pointer; font-size: 0.95rem;">
@@ -110,6 +119,12 @@
             <div class="divider">OU</div>
             <input type="text" id="input-room-id" placeholder="Código da Sala (Ex: 4812)">
             <button onclick="entrarNaSala()" class="btn-secondary">Entrar na Sala</button>
+
+            <!-- Novos botões de Sugestão e Anúncio no Menu -->
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="abrirModalSugestao()" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">💡 Sugestão</button>
+                <button onclick="abrirModalAnuncio()" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">📢 Anuncie Aqui</button>
+            </div>
         </div>
 
         <div class="auth-container" style="margin-top: 20px;">
@@ -174,6 +189,13 @@
                         <button class="key wide" onclick="pressKey('ENTER')">ENTER</button>
                     </div>
                 </div>
+
+                <!-- Roleta de Banners posicionada perfeitamente embaixo do teclado -->
+                <div class="banner-carousel">
+                    <a id="banner-redirect" href="#" target="_blank">
+                        <img id="banner-media" src="" alt="Anúncio">
+                    </a>
+                </div>
             </div>
 
             <div class="spectator-panel">
@@ -192,7 +214,20 @@
     </div>
 
     <script>
-        // CONFIGURAÇÕES REAIS DO SEU FIREBASE INTEGRADAS:
+        // CONFIGURAÇÃO DOS BANNERS (Mude os links e imagens aqui para gerenciar os anúncios de forma fácil)
+        const LISTA_ANUNCIOS = [
+            { 
+                imagem: "https://images.placeholders.dev/?width=468&height=80&text=Anuncie+Aqui+Seu+Produto!&theme=dark", 
+                link: "https://github.com/kayronnbr" 
+            },
+            { 
+                imagem: "https://images.placeholders.dev/?width=468&height=80&text=Gostou+do+Jogo?+Envie+Sugestões!&theme=dark", 
+                link: "https://github.com/kayronnbr/termo-battleroyale" 
+            }
+        ];
+        let bannerAtualIndex = 0;
+
+        // CONFIGURAÇÕES DO SEU FIREBASE INTEGRADAS:
         const firebaseConfig = {
             apiKey: "AIzaSyBJZ89pk9LNXGM-SdOdl5SmymqJJ8cMPRU",
             authDomain: "termo-battle-royale.firebaseapp.com",
@@ -204,7 +239,6 @@
             measurementId: "G-0FECT2HL6E"
         };
 
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
@@ -308,19 +342,42 @@
         let roomStatus = "lobby";
         let timerInterval = null;
 
-        // Estrutura da matriz de palpites locais
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
 
-        // Carregar Nome Salvo no Cache (Local Storage) e inicializar escuta de salas públicas
+        // Carregar Informações do LocalStorage e Iniciar Elementos
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('termo_br_username');
-            if (savedName) {
-                document.getElementById('input-username').value = savedName;
-            }
-            // Inicia o monitoramento das salas abertas
+            if (savedName) document.getElementById('input-username').value = savedName;
+            
+            const savedAvatar = localStorage.getItem('termo_br_avatar');
+            if (savedAvatar) document.getElementById('input-avatar').value = savedAvatar;
+
             ouvirSalasPublicas();
+            rodarCarrosselBanners();
+            setInterval(rodarCarrosselBanners, 6000); // Rotaciona os anúncios a cada 6 segundos
         });
+
+        // Função Simplificada para a Roleta de Banners
+        function rodarCarrosselBanners() {
+            if (LISTA_ANUNCIOS.length === 0) return;
+            const media = document.getElementById('banner-media');
+            const redirecionar = document.getElementById('banner-redirect');
+
+            media.src = LISTA_ANUNCIOS[bannerAtualIndex].imagem;
+            redirecionar.href = LISTA_ANUNCIOS[bannerAtualIndex].link;
+
+            bannerAtualIndex = (bannerAtualIndex + 1) % LISTA_ANUNCIOS.length;
+        }
+
+        // Funções para os botões do Menu Principal
+        function abrirModalSugestao() {
+            mostrarOverlay("💡 ENVIAR SUGESTÃO", "Tem uma ideia legal ou quer relatar um problema? Envie sua sugestão diretamente para o e-mail: suporte-termo@provedor.com ou pelo repositório oficial do projeto.");
+        }
+
+        function abrirModalAnuncio() {
+            mostrarOverlay("📢 ANUNCIE SEU BANNER", "Quer colocar sua marca na nossa roleta de anúncios e alcançar centenas de jogadores diariamente? Entre em contato pelo e-mail: parcerias@provedor.com para consultar preços.");
+        }
 
         // Inicializar Grade do Tabuleiro Visual
         const board = document.getElementById('board-grid');
@@ -337,7 +394,6 @@
             board.appendChild(rowDiv);
         }
 
-        // Copiar Código da Sala para a Área de Transferência
         function copiarCodigoSala() {
             if (!roomId) return;
             navigator.clipboard.writeText(roomId).then(() => {
@@ -352,17 +408,15 @@
         // Criar Nova Sala (Host)
         function criarNovaSala() {
             username = document.getElementById('input-username').value.trim();
+            const avatarUrl = document.getElementById('input-avatar').value.trim();
+            
             if (!username) return alert("Insira um nome válido!");
             
-            // Salva nome no cache
             localStorage.setItem('termo_br_username', username);
+            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
-            
-            // SORTEANDO DIRETAMENTE DO DICIONÁRIO INTEGRADO
             const palavraEscolhida = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
-
-            // Verifica se o host quer que a sala seja pública
             const ehPublica = document.getElementById('check-room-public').checked;
 
             database.ref('salas/' + roomId).set({
@@ -370,14 +424,14 @@
                 status: "lobby",
                 host: username,
                 timerStart: null,
-                publica: ehPublica // Grava o tipo da sala no banco
+                publica: ehPublica
             }).then(() => {
                 amIHost = true;
                 entrarNaSalaComId(roomId);
             });
         }
 
-        // Monitorar e listar salas que foram marcadas como públicas e estão em "lobby"
+        // Ouvir Salas Públicas Ativas
         function ouvirSalasPublicas() {
             database.ref('salas').on('value', (snapshot) => {
                 const todasAsSalas = snapshot.val();
@@ -389,23 +443,12 @@
                 if (todasAsSalas) {
                     for (let id in todasAsSalas) {
                         const sala = todasAsSalas[id];
-                        
-                        // Filtra apenas salas públicas e que ainda não começaram a partida
                         if (sala.publica === true && sala.status === "lobby") {
                             encontrouSala = true;
-                            
-                            let qtdJogadores = 0;
-                            if (sala.jogadores) qtdJogadores = Object.keys(sala.jogadores).length;
+                            let qtdJogadores = sala.jogadores ? Object.keys(sala.jogadores).length : 0;
 
                             const itemSala = document.createElement('div');
-                            itemSala.style.display = "flex";
-                            itemSala.style.justifyContent = "space-between";
-                            itemSala.style.alignItems = "center";
-                            itemSala.style.background = "#2c2c2e";
-                            itemSala.style.padding = "10px";
-                            itemSala.style.borderRadius = "6px";
-                            itemSala.style.border = "1px solid var(--color-border)";
-
+                            itemSala.style = "display: flex; justify-content: space-between; align-items: center; background: #2c2c2e; padding: 10px; border-radius: 6px; border: 1px solid var(--color-border);";
                             itemSala.innerHTML = `
                                 <div style="text-align: left;">
                                     <span style="font-weight: bold; color: var(--color-present);">Sala #${id}</span>
@@ -417,39 +460,35 @@
                         }
                     }
                 }
-
                 if (!encontrouSala) {
                     containerLista.innerHTML = '<p style="color: #86868b; font-size: 0.9rem; margin: 5px 0;">Nenhuma sala pública disponível no momento.</p>';
                 }
             });
         }
 
-        // Lógica para quando um jogador clica no botão "Entrar" da lista pública
         function clicarEntrarSalaPublica(idDaSala) {
             username = document.getElementById('input-username').value.trim();
-            if (!username) return alert("Insira o seu Nickname antes de entrar na sala!");
+            if (!username) return alert("Insira o seu Nickname antes de entrar!");
             
-            localStorage.setItem('termo_br_username', username);
             roomId = idDaSala;
             entrarNaSalaComId(roomId);
         }
 
-        // Entrar em Sala Existente via Código Manual
+        // Entrar em Sala Manualmente
         function entrarNaSala() {
             username = document.getElementById('input-username').value.trim();
+            const avatarUrl = document.getElementById('input-avatar').value.trim();
             roomId = document.getElementById('input-room-id').value.trim();
             
             if (!username || !roomId) return alert("Preencha o nome e o código da sala!");
             
-            // Salva nome no cache
             localStorage.setItem('termo_br_username', username);
+            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             database.ref('salas/' + roomId).once('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    const salaData = snapshot.val();
-                    if (salaData.status === "jogando") {
-                        alert("A partida nessa sala já começou!");
-                        return;
+                    if (snapshot.val().status === "jogando") {
+                        return alert("A partida nessa sala já começou!");
                     }
                     entrarNaSalaComId(roomId);
                 } else {
@@ -465,7 +504,6 @@
 
             atualizarMeuStatusNoFirebase();
 
-            // Escutar atualizações da sala no Firebase em tempo real
             database.ref('salas/' + id).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
@@ -473,11 +511,8 @@
                 palavraSecreta = data.palavra.toUpperCase();
                 roomStatus = data.status;
 
-                if (data.host === username) {
-                    amIHost = true;
-                }
+                if (data.host === username) amIHost = true;
 
-                // Gerenciamento de Interface: Lobby vs Jogo em Andamento
                 const lobbyPanel = document.getElementById('lobby-panel');
                 const playerArea = document.getElementById('player-area');
                 const hostStartBtn = document.getElementById('btn-host-start');
@@ -488,37 +523,28 @@
                     playerArea.style.opacity = "0.25";
                     playerArea.style.pointerEvents = "none";
                     timerMsg.innerText = "Aguardando início no lobby...";
-                    
-                    if (amIHost) {
-                        hostStartBtn.style.display = "block";
-                    }
+                    if (amIHost) hostStartBtn.style.display = "block";
                 } else if (roomStatus === "jogando") {
                     lobbyPanel.style.display = "none";
                     if (myStatus === "jogando") {
                         playerArea.style.opacity = "1";
                         playerArea.style.pointerEvents = "all";
                     }
-                    if (!data.timerStart) {
-                        timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
-                    }
+                    if (!data.timerStart) timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
                 }
 
-                // Monitoramento do Timer Battle Royale
                 if (data.timerStart && !timerInterval) {
                     iniciarContagemRegressivaBR(data.timerStart);
                 }
 
-                // Renderizar feed de Espectador / Lista de Jogadores
                 if (data.jogadores) {
                     renderizarEspectadores(data.jogadores);
                 }
             });
 
-            // Capturar teclado físico do PC
             window.addEventListener('keydown', handlePhysicalKeyboard);
         }
 
-        // Alternar Estado de Pronto no Lobby
         function alternarPronto() {
             isReady = !isReady;
             const btnReady = document.getElementById('btn-ready-toggle');
@@ -532,14 +558,10 @@
             atualizarMeuStatusNoFirebase();
         }
 
-        // Host força o início da partida
         function forçarInicioPartida() {
-            database.ref('salas/' + roomId).update({
-                status: "jogando"
-            });
+            database.ref('salas/' + roomId).update({ status: "jogando" });
         }
 
-        // Processar Teclado Físico
         function handlePhysicalKeyboard(e) {
             if (myStatus !== "jogando" || roomStatus !== "jogando") return;
             const key = e.key.toUpperCase();
@@ -548,7 +570,6 @@
             else if (/^[A-Z]$/.test(key)) pressKey(key);
         }
 
-        // Processar Entrada de Teclas (Físico ou Virtual)
         function pressKey(key) {
             if (myStatus !== "jogando" || roomStatus !== "jogando") return;
 
@@ -560,11 +581,8 @@
                 }
             } 
             else if (key === 'ENTER') {
-                if (currentCol === 5) {
-                    verificarPalpite();
-                } else {
-                    alert("A palavra deve ter 5 letras!");
-                }
+                if (currentCol === 5) verificarPalpite();
+                else alert("A palavra deve ter 5 letras!");
             } 
             else if (guesses[currentRow] && currentCol < 5) {
                 guesses[currentRow][currentCol] = key;
@@ -573,21 +591,18 @@
             }
         }
 
-        // Validar e Colorir Palpite + Colorir o Teclado
         function verificarPalpite() {
             const palpiteArray = guesses[currentRow];
             const palavraDigitada = palpiteArray.join("").toUpperCase();
 
-            // VALIDAÇÃO COM O DICIONÁRIO INTEGRADO
             if (!DICIONARIO.includes(palavraDigitada)) {
-                alert(`⚠️ A palavra "${palavraDigitada}" não existe no dicionário! Escreva uma palavra válida.`);
+                alert(`⚠️ A palavra "${palavraDigitada}" não existe no dicionário!`);
                 return; 
             }
 
             let corretoContagem = 0;
             let palavraCheck = palavraSecreta.split("");
 
-            // Primeiro passo: Encontrar letras certas no lugar certo (Verde)
             for (let i = 0; i < 5; i++) {
                 const cell = document.getElementById(`cell-${currentRow}-${i}`);
                 if (palpiteArray[i] === palavraSecreta[i]) {
@@ -598,13 +613,10 @@
                 }
             }
 
-            // Segundo passo: Encontrar letras existentes em posições erradas (Amarelo ou Cinza)
             for (let i = 0; i < 5; i++) {
                 if (gridStates[currentRow][i] === 'c') continue;
-                
                 const cell = document.getElementById(`cell-${currentRow}-${i}`);
                 const indexNaPalavra = palavraCheck.indexOf(palpiteArray[i]);
-                
                 if (indexNaPalavra > -1) {
                     cell.classList.add('present');
                     gridStates[currentRow][i] = 'p';
@@ -615,13 +627,11 @@
                 }
             }
 
-            // ATUALIZAÇÃO DO TECLADO VIRTUAL DE BAIXO
             for (let i = 0; i < 5; i++) {
                 const letra = palpiteArray[i];
                 const keyElement = document.getElementById(`key-${letra}`);
                 if (keyElement) {
                     const statusLetra = gridStates[currentRow][i]; 
-                    
                     if (statusLetra === 'c') {
                         keyElement.classList.remove('present', 'absent');
                         keyElement.classList.add('correct');
@@ -640,18 +650,13 @@
 
             atualizarMeuStatusNoFirebase();
 
-            // Condição de Vitória
             if (corretoContagem === 5) {
                 myStatus = "ganhou";
                 atualizarMeuStatusNoFirebase();
-                
                 database.ref('salas/' + roomId + '/timerStart').transaction((currentVal) => {
-                    if (currentVal === null) {
-                        return firebase.database.ServerValue.TIMESTAMP;
-                    }
+                    if (currentVal === null) return firebase.database.ServerValue.TIMESTAMP;
                 });
-                
-                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Assista ao desespero dos seus oponentes contra o relógio.");
+                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Assista seus oponentes contra o relógio.");
                 return;
             }
 
@@ -663,7 +668,6 @@
             }
         }
 
-        // Lógica de Redução de Linhas pelo Cronômetro Battle Royale
         function iniciarContagemRegressivaBR(timestampInicioServidor) {
             const msgElement = document.getElementById('timer-message');
             const timerElement = document.getElementById('timer-display');
@@ -675,19 +679,16 @@
                     const offset = snapshot.val() || 0;
                     const estimatedServerTime = Date.now() + offset;
                     const segundosDecorridos = Math.floor((estimatedServerTime - timestampInicioServidor) / 1000);
-                    
-                    const tempoFase1 = 120; // 2 minutos padrão
+                    const tempoFase1 = 120;
                     
                     if (segundosDecorridos < tempoFase1) {
                         const tempoRestante = tempoFase1 - segundosDecorridos;
                         const mins = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
                         const segs = (tempoRestante % 60).toString().padStart(2, '0');
                         timerElement.innerText = `${mins}:${segs}`;
-                    } 
-                    else {
+                    } else {
                         const tempoExtra = segundosDecorridos - tempoFase1;
                         const linhasApagadas = Math.floor(tempoExtra / 15) + 1;
-                        
                         maxRowsAllowed = 6 - linhasApagadas;
                         if (maxRowsAllowed < 0) maxRowsAllowed = 0;
 
@@ -696,9 +697,7 @@
 
                         for (let r = 0; r < 6; r++) {
                             const row = document.getElementById(`row-${r}`);
-                            if (r >= maxRowsAllowed) {
-                                row.classList.add('eliminated');
-                            }
+                            if (r >= maxRowsAllowed) row.classList.add('eliminated');
                         }
 
                         if (currentRow >= maxRowsAllowed && myStatus === "jogando") {
@@ -712,21 +711,28 @@
         function marcarComoDerrota(motivo) {
             myStatus = "perdeu";
             atualizarMeuStatusNoFirebase();
-            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}. Você entrou no Modo Espectador.`);
+            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}.`);
             document.getElementById('game-keyboard').style.opacity = "0.3";
             document.getElementById('game-keyboard').style.pointerEvents = "none";
         }
 
+        // Atualização contendo o link de avatar do jogador
         function atualizarMeuStatusNoFirebase() {
             if (!roomId || !username) return;
+            const avatarUrl = document.getElementById('input-avatar').value.trim() || "";
+            
+            localStorage.setItem('termo_br_avatar', avatarUrl);
+
             database.ref('salas/' + roomId + '/jogadores/' + username).set({
                 status: myStatus,
                 linhaAtual: currentRow,
                 grid: gridStates,
-                ready: isReady
+                ready: isReady,
+                avatar: avatarUrl
             });
         }
 
+        // Renderiza a foto de perfil ao lado do nome do jogador
         function renderizarEspectadores(jogadoresObjeto) {
             const container = document.getElementById('spectator-list');
             container.innerHTML = "";
@@ -749,7 +755,20 @@
                     if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
                 }
 
-                header.innerHTML = `<span>${player}</span><span>${statusLabel}</span>`;
+                // Criação da tag de avatar dinâmica
+                let imgAvatarHtml = `<span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:#48484a; text-align:center; line-height:22px; font-size:0.75rem; margin-right:8px;">👤</span>`;
+                if (pData.avatar && pData.avatar.trim() !== "") {
+                    imgAvatarHtml = `<img src="${pData.avatar}" style="width:22px; height:22px; border-radius:50%; object-fit: cover; margin-right:8px; vertical-align: middle; border: 1px solid #555;">`;
+                }
+
+                header.innerHTML = `
+                    <div style="display:flex; align-items:center;">
+                        ${imgAvatarHtml}
+                        <span>${player}</span>
+                    </div>
+                    <span>${statusLabel}</span>
+                `;
+                
                 card.appendChild(header);
 
                 const miniGrid = document.createElement('div');
@@ -762,9 +781,7 @@
                         for (let c = 0; c < 5; c++) {
                             const mCell = document.createElement('div');
                             mCell.className = 'mini-cell';
-                            if (pData.grid[r] && pData.grid[r][c]) {
-                                mCell.classList.add(pData.grid[r][c]);
-                            }
+                            if (pData.grid[r] && pData.grid[r][c]) mCell.classList.add(pData.grid[r][c]);
                             mRow.appendChild(mCell);
                         }
                         miniGrid.appendChild(mRow);
