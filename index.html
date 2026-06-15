@@ -198,6 +198,12 @@
             50% { background-color: #331414; }
             100% { background-color: #121213; }
         }
+        /* Toast de aviso */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
         .body-lose-active { animation: loseBackground 2s infinite; }
 
     </style>
@@ -369,6 +375,16 @@
         </div>
     </div>
 
+    <!-- ── OVERLAY DE VERIFICAÇÃO DE PRESENÇA NO LOBBY ── -->
+    <div id="presence-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:200;">
+        <div style="background:#1c1c1e; padding:40px; border-radius:12px; border:2px solid #ff9500; text-align:center; max-width:360px;">
+            <div style="font-size:3rem; margin-bottom:10px;">👀</div>
+            <h2 style="color:#ff9500; margin-bottom:10px;">Você ainda está aí?</h2>
+            <p style="color:#86868b; margin-bottom:20px;">Responda em <strong id="presence-countdown" style="color:#ff453a;">30</strong> segundos ou será removido da sala.</p>
+            <button onclick="confirmarPresenca()" style="background:var(--color-correct); font-size:1.1rem;">✅ Estou Aqui!</button>
+        </div>
+    </div>
+
     <footer>
         Feito por <strong>Kayronn Monteiro</strong> com suporte da Inteligência Artificial <a href="https://deepmind.google/technologies/gemini/" target="_blank">Google Gemini</a>.
     </footer>
@@ -525,6 +541,14 @@
         let roomListener = null;
         let jogoIniciado = false;
 
+        // ── NOVOS CONTROLES: timer por linha + presença no lobby ──
+        let lineTimerInterval = null;     // timer de 2 min que elimina linhas
+        let lineTimerSeconds = 120;       // segundos restantes no ciclo atual
+        let linhasEliminadas = 0;         // quantas linhas já foram eliminadas pelo timer
+        let alguemGanhou = false;         // flag: alguém já ganhou → iniciar timer de linha
+        let presenceCheckInterval = null; // intervalo de verificação de presença no lobby
+        let presenceDialogOpen = false;   // modal de "você ainda está aqui?" aberto
+
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
 
@@ -534,6 +558,24 @@
             ouvirSalasPublicas();
             ouvirRankingGlobal();
             inicializarEstruturaGrid();
+
+            // ── AUTO-LOGIN: recupera credenciais salvas ──
+            const savedUser = localStorage.getItem('termobr_user');
+            const savedPass = localStorage.getItem('termobr_pass');
+            if(savedUser && savedPass) {
+                document.getElementById('login-username').value = savedUser;
+                document.getElementById('login-password').value = savedPass;
+                // Tenta logar automaticamente
+                database.ref('users/' + savedUser).once('value', snapshot => {
+                    const userData = snapshot.val();
+                    if(userData && userData.password === savedPass) {
+                        username = savedUser;
+                        userAvatar = userData.avatar;
+                        document.getElementById('logged-display-name').innerText = savedUser;
+                        document.getElementById('user-logged-status').style.display = 'block';
+                    }
+                });
+            }
             
             // Listener para capturar teclado físico
             window.addEventListener('keydown', (e) => {
@@ -602,7 +644,10 @@
                     userAvatar = userData.avatar;
                     document.getElementById('logged-display-name').innerText = u;
                     document.getElementById('user-logged-status').style.display = 'block';
-                    alert(`Bem-vindo, ${u}!`);
+                    // ── SALVAR LOGIN ──
+                    localStorage.setItem('termobr_user', u);
+                    localStorage.setItem('termobr_pass', p);
+                    alert(`Bem-vindo de volta, ${u}! 🎮 (Login salvo)`);
                 } else {
                     alert("Usuário ou senha incorretos.");
                 }
@@ -631,8 +676,12 @@
 
         function deslogarConta() {
             username = ""; userAvatar = "";
+            localStorage.removeItem('termobr_user');
+            localStorage.removeItem('termobr_pass');
             document.getElementById('user-logged-status').style.display = 'none';
-            alert("Você saiu da conta.");
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            alert("Você saiu da conta. Login salvo foi removido.");
         }
 
         /* --- OPERAÇÕES DE SALA E LOBBY --- */
@@ -747,8 +796,9 @@
                 if(!todosProntos) {
                     if(!confirm("Alguns jogadores não estão prontos. Iniciar mesmo assim?")) return;
                 }
+                // Limpa campo de timer de linha no Firebase
+                database.ref(`rooms/${roomId}/lineTimerSeconds`).set(120);
                 database.ref(`rooms/${roomId}/status`).set('jogando');
-                dispararContagemRegressiva();
             });
         }
 
@@ -756,6 +806,9 @@
             if(roomListener) database.ref('rooms/' + roomId).off('value', roomListener);
 
             document.getElementById('room-title').innerHTML = `SALA: ${roomId} <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar Código</button>`;
+
+            // Inicia verificação de presença assim que entra no lobby
+            iniciarVerificacaoPresenca();
 
             roomListener = database.ref('rooms/' + roomId).on('value', snapshot => {
                 if(!snapshot.exists()) return;
@@ -767,10 +820,13 @@
 
                 if(room.status === 'jogando' && !jogoIniciado) {
                     jogoIniciado = true;
+                    // Para a verificação de presença — jogo começou
+                    if(presenceCheckInterval) clearInterval(presenceCheckInterval);
+
                     document.getElementById('lobby-panel').style.display = 'none';
-                    document.getElementById('timer-message').innerText = "Adivinhe a palavra!";
-                    document.getElementById('timer-display').style.display = 'block';
-                    atualizarVisualTimer(room.tempoRestante);
+                    // Timer fica oculto até alguém ganhar
+                    document.getElementById('timer-display').style.display = 'none';
+                    document.getElementById('timer-message').innerText = "Adivinhe a palavra! O timer inicia quando alguém vencer. ⚔️";
 
                     // --- [ANIMAÇÃO] INÍCIO DA PARTIDA CHAMATIVA ---
                     const splash = document.createElement('div');
@@ -784,7 +840,25 @@
                     setTimeout(() => gridContainer.classList.remove('apply-shake'), 400);
                 }
 
+                // ── Detecta quando alguém ganhou: ativa o timer de linha para os demais ──
+                if(room.status === 'jogando' && room.vencedor && !alguemGanhou) {
+                    alguemGanhou = true;
+                    if(myStatus === 'jogando') {
+                        // Mostra o timer e começa a eliminar linhas
+                        document.getElementById('timer-display').style.display = 'block';
+                        document.getElementById('timer-message').innerText = `⚠️ ${room.vencedor} ganhou! Agora você corre contra o tempo!`;
+                        mostrarAviso(`🏆 ${room.vencedor} acertou a palavra! Agora o tempo conta!`, '#ff9500');
+                        iniciarTimerDeLinha();
+                    }
+                }
+
+                // ── Sincroniza display do timer a partir do Firebase (para não-hosts) ──
+                if(room.lineTimerSeconds !== undefined && !amIHost && alguemGanhou && myStatus === 'jogando') {
+                    atualizarVisualTimer(room.lineTimerSeconds);
+                }
+
                 if(room.status === 'encerrado') {
+                    if(lineTimerInterval) clearInterval(lineTimerInterval);
                     finalizarPartidaLocalmente(room.vencedor, "A partida foi encerrada. O vencedor foi " + (room.vencedor || "Ninguém"));
                 }
 
@@ -792,23 +866,164 @@
             });
         }
 
-        function dispararContagemRegressiva() {
-            let tempo = 120;
-            timerInterval = setInterval(() => {
-                tempo--;
-                if(roomId) database.ref(`rooms/${roomId}/tempoRestante`).set(tempo);
-                if(tempo <= 0) {
-                    clearInterval(timerInterval);
-                    verificarFimDeJogoPorTempo();
+        // ─────────────────────────────────────────────────────────────────
+        //  NOVO SISTEMA DE TIMER: elimina 1 linha a cada 2 min após alguém ganhar
+        // ─────────────────────────────────────────────────────────────────
+
+        function iniciarTimerDeLinha() {
+            // Só inicia se ainda há linhas para eliminar e o jogador ainda está jogando
+            if(lineTimerInterval) clearInterval(lineTimerInterval);
+            lineTimerSeconds = 120;
+            atualizarVisualTimer(lineTimerSeconds);
+
+            lineTimerInterval = setInterval(() => {
+                lineTimerSeconds--;
+                atualizarVisualTimer(lineTimerSeconds);
+
+                // Salva no Firebase para sincronizar exibição (apenas o host dispara para evitar conflito)
+                if(amIHost && roomId) {
+                    database.ref(`rooms/${roomId}/lineTimerSeconds`).set(lineTimerSeconds);
+                }
+
+                if(lineTimerSeconds <= 0) {
+                    eliminarLinhaDoTimer();
                 }
             }, 1000);
+        }
+
+        function eliminarLinhaDoTimer() {
+            if(myStatus !== 'jogando') {
+                clearInterval(lineTimerInterval);
+                return;
+            }
+
+            // Calcula a próxima linha disponível para eliminar (de baixo para cima)
+            // Elimina a última linha ainda disponível (maxRowsAllowed - 1 - linhasEliminadas)
+            linhasEliminadas++;
+            const novoMax = 6 - linhasEliminadas;
+
+            if(novoMax <= 0 || currentRow >= novoMax) {
+                // Sem linhas disponíveis — jogador perde
+                clearInterval(lineTimerInterval);
+                verificarFimDeJogoPorTempo();
+                return;
+            }
+
+            maxRowsAllowed = novoMax;
+
+            // Marca visualmente a linha eliminada
+            const linhaAlvo = document.getElementById(`row-${novoMax}`);
+            if(linhaAlvo) {
+                linhaAlvo.classList.add('eliminated');
+                // Animação de tremor
+                linhaAlvo.classList.add('row-damage-anim');
+                setTimeout(() => linhaAlvo.classList.remove('row-damage-anim'), 600);
+            }
+
+            // Flash na tela avisando que perdeu uma linha
+            mostrarAviso(`⚠️ Linha eliminada pelo timer! Restam ${novoMax} tentativas!`, '#ff9500');
+
+            // Reinicia o ciclo de 2 minutos
+            lineTimerSeconds = 120;
+        }
+
+        function verificarFimDeJogoPorTempo() {
+            if(myStatus === 'jogando') {
+                myStatus = "perdeu";
+                database.ref(`rooms/${roomId}/players/${username}/status`).set("perdeu");
+                computarPontuacaoFinal(false);
+
+                // Animação de derrota
+                document.body.classList.add('body-lose-active');
+                exibirOverlayFimJogo("TEMPO ESGOTADO! ⏱️", `Suas linhas acabaram. A palavra secreta era: ${palavraSecreta}`);
+                document.getElementById('overlay-wrapper').className = 'overlay-content overlay-lose';
+
+                verificarSeTodosPerderam();
+            }
+        }
+
+        function dispararContagemRegressiva() {
+            // Mantida por compatibilidade — a contagem real agora é a de linha
+            // (chamada quando o host inicia a partida; aqui apenas sincroniza o timer)
+        }
+
+        function mostrarAviso(texto, cor) {
+            const aviso = document.createElement('div');
+            aviso.style.cssText = `
+                position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+                background: ${cor || '#ff9500'}; color: #000; font-weight: bold;
+                padding: 12px 24px; border-radius: 8px; z-index: 9999;
+                font-size: 1rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                animation: fadeInDown 0.3s ease;
+            `;
+            aviso.innerText = texto;
+            document.body.appendChild(aviso);
+            setTimeout(() => aviso.remove(), 3500);
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        //  SISTEMA DE VERIFICAÇÃO DE PRESENÇA NO LOBBY (a cada 2 min)
+        // ─────────────────────────────────────────────────────────────────
+
+        function iniciarVerificacaoPresenca() {
+            if(presenceCheckInterval) clearInterval(presenceCheckInterval);
+            // Dispara verificação a cada 120 segundos
+            presenceCheckInterval = setInterval(() => {
+                // Só verifica se ainda está no lobby
+                if(roomStatus !== 'lobby' || jogoIniciado) {
+                    clearInterval(presenceCheckInterval);
+                    return;
+                }
+                exibirModalPresenca();
+            }, 120000);
+        }
+
+        function exibirModalPresenca() {
+            presenceDialogOpen = true;
+            document.getElementById('presence-overlay').style.display = 'flex';
+            let countdown = 30;
+            document.getElementById('presence-countdown').innerText = countdown;
+
+            const presTimer = setInterval(() => {
+                countdown--;
+                document.getElementById('presence-countdown').innerText = countdown;
+                if(countdown <= 0) {
+                    clearInterval(presTimer);
+                    // Não respondeu — expulsa
+                    expulsarPorInatividade();
+                }
+            }, 1000);
+
+            // Guarda o timer para poder cancelar ao confirmar
+            document.getElementById('presence-overlay').dataset.timerId = presTimer;
+        }
+
+        function confirmarPresenca() {
+            const timerId = parseInt(document.getElementById('presence-overlay').dataset.timerId);
+            clearInterval(timerId);
+            presenceDialogOpen = false;
+            document.getElementById('presence-overlay').style.display = 'none';
+            // Atualiza timestamp de presença no Firebase
+            if(roomId && username) {
+                database.ref(`rooms/${roomId}/players/${username}/lastSeen`).set(Date.now());
+            }
+        }
+
+        function expulsarPorInatividade() {
+            presenceDialogOpen = false;
+            document.getElementById('presence-overlay').style.display = 'none';
+            alert("Você foi removido da sala por inatividade. ⏰");
+            abandonarSala();
         }
 
         function atualizarVisualTimer(segundos) {
             if(segundos < 0) segundos = 0;
             const min = Math.floor(segundos / 60).toString().padStart(2, '0');
             const seg = (segundos % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').innerText = `${min}:${seg}`;
+            const el = document.getElementById('timer-display');
+            el.innerText = `⏳ ${min}:${seg}`;
+            // Fica vermelho nos últimos 30 segundos
+            el.style.color = segundos <= 30 ? '#ff453a' : '#ff9500';
         }
 
         function renderizarPainelEspectadores(playersObj) {
@@ -953,6 +1168,10 @@
                 database.ref(`rooms/${roomId}/vencedor`).set(username);
                 computarPontuacaoFinal(true);
 
+                // Para o timer de linha (vencedor não precisa mais)
+                if(lineTimerInterval) clearInterval(lineTimerInterval);
+                document.getElementById('timer-display').style.display = 'none';
+
                 // --- [ANIMAÇÃO] VITÓRIA CHAMATIVA ---
                 document.body.classList.add('body-win-active');
                 exibirOverlayFimJogo("VITÓRIA! 👑", "Você acertou a palavra secreta e sobreviveu ao Battle Royale!");
@@ -1052,10 +1271,14 @@
 
         function resetarEstadoJogo() {
             if(timerInterval) clearInterval(timerInterval);
+            if(lineTimerInterval) clearInterval(lineTimerInterval);
+            if(presenceCheckInterval) clearInterval(presenceCheckInterval);
             if(roomId && roomListener) database.ref('rooms/' + roomId).off('value', roomListener);
             
             roomId = ""; palavraSecreta = "TERMO"; currentRow = 0; currentCol = 0;
             myStatus = "jogando"; isReady = false; amIHost = false; roomStatus = "lobby"; jogoIniciado = false;
+            alguemGanhou = false; linhasEliminadas = 0; maxRowsAllowed = 6; lineTimerSeconds = 120;
+            presenceDialogOpen = false;
             guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
             gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
             
@@ -1064,6 +1287,7 @@
             document.getElementById('timer-message').innerText = "Aguardando a partida iniciar...";
             document.getElementById('btn-ready-toggle').innerText = "Marcar como Pronto";
             document.getElementById('btn-ready-toggle').style.background = "var(--color-present)";
+            document.getElementById('presence-overlay').style.display = 'none';
             
             fecharOverlay();
             inicializarEstruturaGrid();
