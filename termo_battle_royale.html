@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termo Battle Royale 👑</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --color-correct: #538d4e;
+            --color-present: #b59f3b;
+            --color-absent: #3a3a3c;
+            --color-bg: #121213;
+            --color-grid-bg: #1a1a1c;
+            --color-border: #3a3a3c;
+            --color-text: #ffffff;
+            --color-disabled: #222224;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--color-bg); color: var(--color-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        .screen { display: none; width: 100%; max-width: 900px; text-align: center; }
+        .screen.active { display: block; }
+
+        h1 { margin-bottom: 10px; font-size: 2.5rem; letter-spacing: 2px; }
+        p { color: #86868b; margin-bottom: 20px; }
+
+        /* Setup Screen */
+        .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 400px; margin: 40px auto; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #2c2c2e; border: 1px solid var(--color-border); color: white; border-radius: 6px; font-size: 1rem; text-align: center; }
+        button { width: 100%; padding: 12px; background: var(--color-correct); border: none; color: white; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+        button:hover { background: #43723f; }
+        .btn-secondary { background: #48484a; }
+        .btn-secondary:hover { background: #3a3a3c; }
+        .divider { margin: 20px 0; color: #86868b; font-size: 0.9rem; }
+
+        /* Game Screen Layout */
+        .game-layout { display: flex; flex-direction: row; gap: 30px; justify-content: center; align-items: flex-start; margin-top: 20px; flex-wrap: wrap; }
+        .main-game-area { flex: 1; min-width: 300px; max-width: 450px; }
+        
+        /* Room Info & Timer */
+        .status-panel { background: #1c1c1e; padding: 15px; border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 20px; }
+        #timer-display { font-size: 1.5rem; font-weight: bold; color: #ff453a; margin-top: 5px; display: none; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Wordle Grid */
+        .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; }
+        .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; transition: all 0.5s ease; }
+        .grid-row.eliminated { opacity: 0.2; transform: scale(0.95); pointer-events: none; background: #ff453a22; }
+        .cell { aspect-ratio: 1; border: 2px solid var(--color-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; background: var(--color-grid-bg); }
+        .cell.correct { background-color: var(--color-correct); border-color: var(--color-correct); }
+        .cell.present { background-color: var(--color-present); border-color: var(--color-present); }
+        .cell.absent { background-color: var(--color-absent); border-color: var(--color-absent); }
+
+        /* Keyboard */
+        .keyboard { display: flex; flex-direction: column; gap: 6px; }
+        .key-row { display: flex; justify-content: center; gap: 4px; }
+        .key { background: #818384; border: none; color: white; padding: 14px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 0.9rem; user-select: none; }
+        .key.wide { flex: 1.5; }
+
+        /* Spectator Panel */
+        .spectator-panel { flex: 1; min-width: 300px; max-width: 400px; background: #1c1c1e; border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; max-height: 70vh; overflow-y: auto; }
+        .spectator-panel h2 { font-size: 1.3rem; margin-bottom: 15px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px; }
+        .player-card { background: #2c2c2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 5px solid #86868b; text-align: left; }
+        .player-card.ganhou { border-left-color: var(--color-correct); }
+        .player-card.perdeu { border-left-color: #ff453a; }
+        .player-card-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+        
+        /* Mini Grid for Spectating */
+        .mini-grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 2px; width: 80px; margin-top: 5px; }
+        .mini-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+        .mini-cell { width: 14px; height: 14px; border: 1px solid #444; background: #1a1a1c; }
+        .mini-cell.c { background: var(--color-correct); }
+        .mini-cell.p { background: var(--color-present); }
+        .mini-cell.a { background: var(--color-absent); }
+
+        /* Overlay Alerts */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
+        .overlay-content { background: #1c1c1e; padding: 40px; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 400px; }
+        .overlay h2 { font-size: 2rem; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="screen-setup" class="screen active">
+        <h1>TERMO BATTLE ROYALE 👑</h1>
+        <p>O último sobrevivente que adivinhar a palavra vence!</p>
+        
+        <div class="auth-container">
+            <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12">
+            <div class="divider">---</div>
+            <button onclick="criarNovaSala()">Criar Nova Sala</button>
+            <div class="divider">OU</div>
+            <input type="text" id="input-room-id" placeholder="Código da Sala (Ex: 4812)">
+            <button onclick="entrarNaSala()" class="btn-secondary">Entrar na Sala</button>
+        </div>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <div class="status-panel">
+            <h3 id="room-title">SALA: ----</h3>
+            <div id="timer-message">Aguardando alguém acertar...</div>
+            <div id="timer-display">02:00</div>
+        </div>
+
+        <div class="game-layout">
+            <div class="main-game-area" id="player-area">
+                <div class="grid" id="board-grid">
+                    </div>
+
+                <div class="keyboard" id="game-keyboard">
+                    <div class="key-row">
+                        <button class="key" onclick="pressKey('Q')">Q</button>
+                        <button class="key" onclick="pressKey('W')">W</button>
+                        <button class="key" onclick="pressKey('E')">E</button>
+                        <button class="key" onclick="pressKey('R')">R</button>
+                        <button class="key" onclick="pressKey('T')">T</button>
+                        <button class="key" onclick="pressKey('Y')">Y</button>
+                        <button class="key" onclick="pressKey('U')">U</button>
+                        <button class="key" onclick="pressKey('I')">I</button>
+                        <button class="key" onclick="pressKey('O')">O</button>
+                        <button class="key" onclick="pressKey('P')">P</button>
+                    </div>
+                    <div class="key-row">
+                        <button class="key" onclick="pressKey('A')">A</button>
+                        <button class="key" onclick="pressKey('S')">S</button>
+                        <button class="key" onclick="pressKey('D')">D</button>
+                        <button class="key" onclick="pressKey('F')">F</button>
+                        <button class="key" onclick="pressKey('G')">G</button>
+                        <button class="key" onclick="pressKey('H')">H</button>
+                        <button class="key" onclick="pressKey('J')">J</button>
+                        <button class="key" onclick="pressKey('K')">K</button>
+                        <button class="key" onclick="pressKey('L')">L</button>
+                        <button class="key wide" onclick="pressKey('BACKSPACE')">⌫</button>
+                    </div>
+                    <div class="key-row">
+                        <button class="key" onclick="pressKey('Z')">Z</button>
+                        <button class="key" onclick="pressKey('X')">X</button>
+                        <button class="key" onclick="pressKey('C')">C</button>
+                        <button class="key" onclick="pressKey('V')">V</button>
+                        <button class="key" onclick="pressKey('B')">B</button>
+                        <button class="key" onclick="pressKey('N')">N</button>
+                        <button class="key" onclick="pressKey('M')">M</button>
+                        <button class="key wide" onclick="pressKey('ENTER')">ENTER</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="spectator-panel">
+                <h2>Live Jogadores (Espectador) 👁️</h2>
+                <div id="spectator-list">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-overlay" class="overlay">
+        <div class="overlay-content">
+            <h2 id="overlay-title">FIM DE JOGO</h2>
+            <p id="overlay-body"></p>
+            <button onclick="fecharOverlay()" class="btn-secondary">Voltar para o Jogo (Espectar)</button>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÕES REAIS DO SEU FIREBASE INTEGRADAS:
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJZ89pk9LNXGM-SdOdl5SmymqJJ8cMPRU",
+            authDomain: "termo-battle-royale.firebaseapp.com",
+            databaseURL: "https://termo-battle-royale-default-rtdb.firebaseio.com",
+            projectId: "termo-battle-royale",
+            storageBucket: "termo-battle-royale.firebasestorage.app",
+            messagingSenderId: "497454858017",
+            appId: "1:497454858017:web:3c21dac4a0afd0bd6c0860",
+            measurementId: "G-0FECT2HL6E"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Variáveis Globais de Estado do Jogo
+        let username = "";
+        let roomId = "";
+        let palavraSecreta = "TERMO"; 
+        let currentRow = 0;
+        let currentCol = 0;
+        let maxRowsAllowed = 6;
+        let myStatus = "jogando"; 
+        let timerInterval = null;
+
+        // Estrutura da matriz de palpites locais
+        let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+        let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
+
+        // Inicializar Grade do Tabuleiro Visual
+        const board = document.getElementById('board-grid');
+        for (let r = 0; r < 6; r++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'grid-row';
+            rowDiv.id = `row-${r}`;
+            for (let c = 0; c < 5; c++) {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'cell';
+                cellDiv.id = `cell-${r}-${c}`;
+                rowDiv.appendChild(cellDiv);
+            }
+            board.appendChild(rowDiv);
+        }
+
+        // Criar Nova Sala
+        function criarNovaSala() {
+            username = document.getElementById('input-username').value.trim();
+            if (!username) return alert("Insira um nome válido!");
+            
+            roomId = Math.floor(1000 + Math.random() * 9000).toString();
+            
+            // Lista de palavras possíveis para o jogo escolher aleatoriamente
+            const palavrasPool = ["TERMO", "JOGOS", "NUVEM", "TEXTO", "FUEGO", "LETRA", "BRUTA", "PLANO", "PODER", "SAGAZ"];
+            const palavraEscolhida = palavrasPool[Math.floor(Math.random() * palavrasPool.length)];
+
+            database.ref('salas/' + roomId).set({
+                palavra: palavraEscolhida,
+                status: "jogando",
+                timerStart: null
+            }).then(() => {
+                entrarNaSalaComId(roomId);
+            });
+        }
+
+        // Entrar em Sala Existente
+        function entrarNaSala() {
+            username = document.getElementById('input-username').value.trim();
+            roomId = document.getElementById('input-room-id').value.trim();
+            
+            if (!username || !roomId) return alert("Preencha o nome e o código da sala!");
+            
+            database.ref('salas/' + roomId).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    entrarNaSalaComId(roomId);
+                } else {
+                    alert("Sala não encontrada!");
+                }
+            });
+        }
+
+        function entrarNaSalaComId(id) {
+            document.getElementById('screen-setup').classList.remove('active');
+            document.getElementById('screen-game').classList.add('active');
+            document.getElementById('room-title').innerText = `SALA: ${id}`;
+
+            atualizarMeuStatusNoFirebase();
+
+            // Escutar atualizações da sala
+            database.ref('salas/' + id).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                palavraSecreta = data.palavra.toUpperCase();
+                
+                // Monitoramento do Timer Battle Royale
+                if (data.timerStart && !timerInterval) {
+                    iniciarContagemRegressivaBR(data.timerStart);
+                }
+
+                // Renderizar feed de Espectador em Tempo Real
+                if (data.jogadores) {
+                    renderizarEspectadores(data.jogadores);
+                }
+            });
+
+            // Capturar teclado físico do PC
+            window.addEventListener('keydown', handlePhysicalKeyboard);
+        }
+
+        // Processar Teclado Físico
+        function handlePhysicalKeyboard(e) {
+            if (myStatus !== "jogando") return;
+            const key = e.key.toUpperCase();
+            if (key === 'ENTER') pressKey('ENTER');
+            else if (key === 'BACKSPACE') pressKey('BACKSPACE');
+            else if (/^[A-Z]$/.test(key)) pressKey(key);
+        }
+
+        // Processar Entrada de Teclas (Físico ou Virtual)
+        function pressKey(key) {
+            if (myStatus !== "jogando") return;
+
+            if (key === 'BACKSPACE') {
+                if (currentCol > 0) {
+                    currentCol--;
+                    guesses[currentRow][currentCol] = "";
+                    document.getElementById(`cell-${currentRow}-${currentCol}`).innerText = "";
+                }
+            } 
+            else if (key === 'ENTER') {
+                if (currentCol === 5) {
+                    verificarPalpite();
+                } else {
+                    alert("A palavra deve ter 5 letras!");
+                }
+            } 
+            else if (guesses[currentRow] && currentCol < 5) {
+                guesses[currentRow][currentCol] = key;
+                document.getElementById(`cell-${currentRow}-${currentCol}`).innerText = key;
+                currentCol++;
+            }
+        }
+
+        // Validar e Colorir Palpite
+        function verificarPalpite() {
+            const palpiteArray = guesses[currentRow];
+            let corretoContagem = 0;
+            let palavraCheck = palavraSecreta.split("");
+
+            // Primeiro passo: Encontrar letras certas no lugar certo (Verde)
+            for (let i = 0; i < 5; i++) {
+                const cell = document.getElementById(`cell-${currentRow}-${i}`);
+                if (palpiteArray[i] === palavraSecreta[i]) {
+                    cell.classList.add('correct');
+                    gridStates[currentRow][i] = 'c';
+                    palavraCheck[i] = null;
+                    corretoContagem++;
+                }
+            }
+
+            // Segundo passo: Encontrar letras existentes em posições erradas (Amarelo ou Cinza)
+            for (let i = 0; i < 5; i++) {
+                if (gridStates[currentRow][i] === 'c') continue;
+                
+                const cell = document.getElementById(`cell-${currentRow}-${i}`);
+                const indexNaPalavra = palavraCheck.indexOf(palpiteArray[i]);
+                
+                if (indexNaPalavra > -1) {
+                    cell.classList.add('present');
+                    gridStates[currentRow][i] = 'p';
+                    palavraCheck[indexNaPalavra] = null;
+                } else {
+                    cell.classList.add('absent');
+                    gridStates[currentRow][i] = 'a';
+                }
+            }
+
+            atualizarMeuStatusNoFirebase();
+
+            // Condição de Vitória
+            if (corretoContagem === 5) {
+                myStatus = "ganhou";
+                atualizarMeuStatusNoFirebase();
+                
+                // Dispara o timer da sala na nuvem caso seja o primeiro a ganhar
+                database.ref('salas/' + roomId + '/timerStart').transaction((currentVal) => {
+                    if (currentVal === null) {
+                        return firebase.database.ServerValue.TIMESTAMP;
+                    }
+                });
+                
+                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Agora assista aos seus oponentes sofrerem contra o tempo.");
+                return;
+            }
+
+            currentRow++;
+            currentCol = 0;
+
+            if (currentRow >= maxRowsAllowed && myStatus === "jogando") {
+                marcarComoDerrota("Acabaram suas tentativas!");
+            }
+        }
+
+        // Lógica de Redução de Linhas pelo Cronômetro Battle Royale
+        function iniciarContagemRegressivaBR(timestampInicioServidor) {
+            const msgElement = document.getElementById('timer-message');
+            const timerElement = document.getElementById('timer-display');
+            timerElement.style.display = "block";
+            msgElement.innerText = "ALGUÉM GANHOU! Corra contra o tempo!";
+
+            timerInterval = setInterval(() => {
+                database.ref('.info/serverTimeOffset').once('value', (snapshot) => {
+                    const offset = snapshot.val() || 0;
+                    const estimatedServerTime = Date.now() + offset;
+                    const segundosDecorridos = Math.floor((estimatedServerTime - timestampInicioServidor) / 1000);
+                    
+                    const tempoFase1 = 120; // 2 minutos
+                    
+                    if (segundosDecorridos < tempoFase1) {
+                        const tempoRestante = tempoFase1 - segundosDecorridos;
+                        const mins = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
+                        const segs = (tempoRestante % 60).toString().padStart(2, '0');
+                        timerElement.innerText = `${mins}:${segs}`;
+                    } 
+                    else {
+                        const tempoExtra = segundosDecorridos - tempoFase1;
+                        const linhasApagadas = Math.floor(tempoExtra / 15) + 1;
+                        
+                        maxRowsAllowed = 6 - linhasApagadas;
+                        if (maxRowsAllowed < 0) maxRowsAllowed = 0;
+
+                        timerElement.innerText = "TEMPO ESGOTADO!";
+                        msgElement.innerText = `Linhas deletadas! Máximo permitido: ${maxRowsAllowed}`;
+
+                        for (let r = 0; r < 6; r++) {
+                            const row = document.getElementById(`row-${r}`);
+                            if (r >= maxRowsAllowed) {
+                                row.classList.add('eliminated');
+                            }
+                        }
+
+                        if (currentRow >= maxRowsAllowed && myStatus === "jogando") {
+                            marcarComoDerrota("O tempo acabou e suas linhas foram destruídas!");
+                        }
+                    }
+                });
+            }, 1000);
+        }
+
+        function marcarComoDerrota(motivo) {
+            myStatus = "perdeu";
+            atualizarMeuStatusNoFirebase();
+            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}. Você agora entrou no Modo Espectador.`);
+            document.getElementById('game-keyboard').style.opacity = "0.3";
+            document.getElementById('game-keyboard').style.pointerEvents = "none";
+        }
+
+        function atualizarMeuStatusNoFirebase() {
+            if (!roomId || !username) return;
+            database.ref('salas/' + roomId + '/jogadores/' + username).set({
+                status: myStatus,
+                linhaAtual: currentRow,
+                grid: gridStates
+            });
+        }
+
+        function renderizarEspectadores(jogadoresObjeto) {
+            const container = document.getElementById('spectator-list');
+            container.innerHTML = "";
+
+            for (let player in jogadoresObjeto) {
+                if (player === username) continue;
+
+                const pData = jogadoresObjeto[player];
+                const card = document.createElement('div');
+                card.className = `player-card ${pData.status || ''}`;
+
+                const header = document.createElement('div');
+                header.className = 'player-card-header';
+                
+                let statusLabel = "📝 Jogando";
+                if (pData.status === "ganhou") statusLabel = "👑 Venceu!";
+                if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
+
+                header.innerHTML = `<span>${player}</span><span>${statusLabel}</span>`;
+                card.appendChild(header);
+
+                const miniGrid = document.createElement('div');
+                miniGrid.className = 'mini-grid';
+
+                if (pData.grid) {
+                    for (let r = 0; r < 6; r++) {
+                        const mRow = document.createElement('div');
+                        mRow.className = 'mini-row';
+                        for (let c = 0; c < 5; c++) {
+                            const mCell = document.createElement('div');
+                            mCell.className = 'mini-cell';
+                            if (pData.grid[r] && pData.grid[r][c]) {
+                                mCell.classList.add(pData.grid[r][c]);
+                            }
+                            mRow.appendChild(mCell);
+                        }
+                        miniGrid.appendChild(mRow);
+                    }
+                }
+                card.appendChild(miniGrid);
+                container.appendChild(card);
+            }
+        }
+
+        function mostrarOverlay(titulo, mensagem) {
+            document.getElementById('overlay-title').innerText = titulo;
+            document.getElementById('overlay-body').innerText = mensagem;
+            document.getElementById('game-overlay').style.display = 'flex';
+        }
+
+        function fecharOverlay() {
+            document.getElementById('game-overlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
