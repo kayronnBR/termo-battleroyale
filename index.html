@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>67 Termo Battle Royale 👑</title>
+    <title>Termo Battle Royale 👑</title>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
@@ -19,7 +19,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--color-bg); color: var(--color-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { background-color: var(--color-bg); color: var(--color-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-x: hidden; }
         
         .screen { display: none; width: 100%; max-width: 900px; text-align: center; }
         .screen.active { display: block; }
@@ -28,8 +28,10 @@
         p { color: #86868b; margin-bottom: 20px; }
 
         /* Setup Screen */
-        .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 400px; margin: 40px auto; }
+        .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 460px; margin: 40px auto; }
+        .input-group { display: flex; gap: 10px; margin: 10px 0; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: #2c2c2e; border: 1px solid var(--color-border); color: white; border-radius: 6px; font-size: 1rem; text-align: center; }
+        .input-group input { margin: 0; }
         button { width: 100%; padding: 12px; background: var(--color-correct); border: none; color: white; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
         button:hover { background: #43723f; }
         .btn-secondary { background: #48484a; }
@@ -53,9 +55,9 @@
         .btn-start { background: var(--color-correct); font-size: 1.1rem; }
 
         /* Wordle Grid */
-        .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; transition: transform 0.1s ease; }
         .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; transition: all 0.5s ease; }
-        .grid-row.eliminated { opacity: 0.2; transform: scale(0.95); pointer-events: none; background: #ff453a22; }
+        .grid-row.eliminated { opacity: 0.15; transform: scale(0.95); pointer-events: none; background: #ff453a22; }
         .cell { aspect-ratio: 1; border: 2px solid var(--color-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; background: var(--color-grid-bg); }
         .cell.correct { background-color: var(--color-correct); border-color: var(--color-correct); }
         .cell.present { background-color: var(--color-present); border-color: var(--color-present); }
@@ -76,30 +78,94 @@
         .player-card { background: #2c2c2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 5px solid #86868b; text-align: left; }
         .player-card.ganhou { border-left-color: var(--color-correct); }
         .player-card.perdeu { border-left-color: #ff453a; }
-        .player-card-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+        .player-card-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
         
-        /* Mini Grid for Spectating */
-        .mini-grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 2px; width: 80px; margin-top: 5px; }
+        /* Mini Grid for Spectating (Aumentado para exibir letras) */
+        .mini-grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 2px; width: 110px; margin-top: 5px; }
         .mini-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
-        .mini-cell { width: 14px; height: 14px; border: 1px solid #444; background: #1a1a1c; }
-        .mini-cell.c { background: var(--color-correct); }
-        .mini-cell.p { background: var(--color-present); }
-        .mini-cell.a { background: var(--color-absent); }
+        .mini-cell { 
+            width: 20px; height: 20px; border: 1px solid #444; background: #1a1a1c; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: #ffffff;
+        }
+        .mini-cell.c { background: var(--color-correct); border-color: var(--color-correct); }
+        .mini-cell.p { background: var(--color-present); border-color: var(--color-present); }
+        .mini-cell.a { background: var(--color-absent); border-color: var(--color-absent); }
 
         /* Overlay Alerts */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
         .overlay-content { background: #1c1c1e; padding: 40px; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 400px; }
         .overlay h2 { font-size: 2rem; margin-bottom: 10px; }
+
+        /* Animações Visuais */
+        .match-start-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 200; justify-content: center; align-items: center;
+        }
+        .match-start-content {
+            font-size: 3.5rem; font-weight: bold; color: var(--color-correct); text-transform: uppercase;
+            animation: popAndSpin 1.5s ease-out forwards; text-shadow: 0 0 25px rgba(83,141,78,0.7); text-align: center;
+        }
+        @keyframes popAndSpin {
+            0% { transform: scale(0) rotate(-25deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(15deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 0; }
+        }
+
+        .bomb-flash-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 69, 58, 0.4); z-index: 150; justify-content: center; align-items: center;
+            font-size: 9rem; pointer-events: none;
+        }
+        .bomb-active { display: flex; animation: bombExplode 0.8s ease-out forwards; }
+        @keyframes bombExplode {
+            0% { opacity: 0; transform: scale(0.4); }
+            30% { opacity: 1; transform: scale(1.5); }
+            100% { opacity: 0; transform: scale(2); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-6px, 0); }
+            20%, 40%, 60%, 80% { transform: translate(6px, 0); }
+        }
+
+        .grand-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 250; justify-content: center; align-items: center; pointer-events: none;
+        }
+        .grand-overlay.victory { background: rgba(83, 141, 78, 0.9); }
+        .grand-overlay.death { background: rgba(20, 20, 22, 0.95); }
+        .grand-content {
+            font-size: 5rem; font-weight: bold; text-align: center; color: white;
+            animation: grandPop 3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; line-height: 1.3;
+        }
+        @keyframes grandPop {
+            0% { transform: scale(0.3); opacity: 0; }
+            15% { transform: scale(1.1); opacity: 1; }
+            25% { transform: scale(1); opacity: 1; }
+            85% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.5); opacity: 0; }
+        }
     </style>
 </head>
 <body>
+
+    <div id="start-match-overlay" class="match-start-overlay">
+        <div class="match-start-content">PARTIDA INICIADA! 🚀<br><span style="font-size: 1.5rem; color: #fff;">VALENDO!</span></div>
+    </div>
+    <div id="bomb-flash" class="bomb-flash-overlay">💣</div>
+    <div id="grand-victory-overlay" class="grand-overlay victory"><div class="grand-content">🏆<br>VITÓRIA!</div></div>
+    <div id="grand-death-overlay" class="grand-overlay death"><div class="grand-content">💀<br>ELIMINADO</div></div>
 
     <div id="screen-setup" class="screen active">
         <h1>TERMO BATTLE ROYALE 👑</h1>
         <p>O último sobrevivente que adivinhar a palavra vence!</p>
         
         <div class="auth-container">
-            <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12">
+            <div class="input-group">
+                <input type="text" id="input-avatar" placeholder="URL da Foto de Perfil 🖼️">
+                <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12">
+            </div>
             <div class="divider">---</div>
             <button onclick="criarNovaSala()">Criar Nova Sala</button>
             <div class="divider">OU</div>
@@ -124,8 +190,7 @@
 
         <div class="game-layout">
             <div class="main-game-area" id="player-area">
-                <div class="grid" id="board-grid">
-                    </div>
+                <div class="grid" id="board-grid"></div>
 
                 <div class="keyboard" id="game-keyboard">
                     <div class="key-row">
@@ -166,9 +231,8 @@
             </div>
 
             <div class="spectator-panel">
-                <h2>Live Jogadores (Espectador) 👁️</h2>
-                <div id="spectator-list">
-                    </div>
+                <h2>Live Jogadores 👁️</h2>
+                <div id="spectator-list"></div>
             </div>
         </div>
     </div>
@@ -182,7 +246,6 @@
     </div>
 
     <script>
-        // CONFIGURAÇÕES REAIS DO SEU FIREBASE INTEGRADAS:
         const firebaseConfig = {
             apiKey: "AIzaSyBJZ89pk9LNXGM-SdOdl5SmymqJJ8cMPRU",
             authDomain: "termo-battle-royale.firebaseapp.com",
@@ -194,11 +257,9 @@
             measurementId: "G-0FECT2HL6E"
         };
 
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // DICIONÁRIO DE PALAVRAS VÁLIDAS E DE SORTEIO (SEM ACENTOS)
         const DICIONARIO = [
             "POBRE", "FILMA", "TERMO", "JOGOS", "NUVEM", "TEXTO", "LETRA", "BRUTA", "PLANO", "PODER",
             "SAGAZ", "PORTA", "CORPO", "FESTA", "GRUPO", "TEMPO", "AMIGO", "CARRO", "CASAL", "CHAVE",
@@ -285,7 +346,6 @@
             "ZONZO", "ZOOM", "ZORRA", "ZORRO", "ZUMBI"
         ];
 
-        // Variáveis Globais de Estado do Jogo
         let username = "";
         let roomId = "";
         let palavraSecreta = "TERMO"; 
@@ -297,20 +357,18 @@
         let amIHost = false;
         let roomStatus = "lobby";
         let timerInterval = null;
+        let localRoomStatus = "lobby";
 
-        // Estrutura da matriz de palpites locais
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
 
-        // Carregar Nome Salvo no Cache (Local Storage) ao abrir o jogo
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('termo_br_username');
-            if (savedName) {
-                document.getElementById('input-username').value = savedName;
-            }
+            if (savedName) document.getElementById('input-username').value = savedName;
+            const savedAvatar = localStorage.getItem('termo_br_avatar');
+            if (savedAvatar) document.getElementById('input-avatar').value = savedAvatar;
         });
 
-        // Inicializar Grade do Tabuleiro Visual
         const board = document.getElementById('board-grid');
         for (let r = 0; r < 6; r++) {
             const rowDiv = document.createElement('div');
@@ -325,7 +383,6 @@
             board.appendChild(rowDiv);
         }
 
-        // Copiar Código da Sala para a Área de Transferência
         function copiarCodigoSala() {
             if (!roomId) return;
             navigator.clipboard.writeText(roomId).then(() => {
@@ -337,17 +394,15 @@
             });
         }
 
-        // Criar Nova Sala (Host)
         function criarNovaSala() {
             username = document.getElementById('input-username').value.trim();
+            const avatarUrl = document.getElementById('input-avatar').value.trim();
             if (!username) return alert("Insira um nome válido!");
             
-            // Salva nome no cache
             localStorage.setItem('termo_br_username', username);
+            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
-            
-            // SORTEANDO DIRETAMENTE DO DICIONÁRIO INTEGRADO
             const palavraEscolhida = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
 
             database.ref('salas/' + roomId).set({
@@ -361,15 +416,15 @@
             });
         }
 
-        // Entrar em Sala Existente
         function entrarNaSala() {
             username = document.getElementById('input-username').value.trim();
+            const avatarUrl = document.getElementById('input-avatar').value.trim();
             roomId = document.getElementById('input-room-id').value.trim();
             
             if (!username || !roomId) return alert("Preencha o nome e o código da sala!");
             
-            // Salva nome no cache
             localStorage.setItem('termo_br_username', username);
+            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             database.ref('salas/' + roomId).once('value', (snapshot) => {
                 if (snapshot.exists()) {
@@ -392,7 +447,6 @@
 
             atualizarMeuStatusNoFirebase();
 
-            // Escutar atualizações da sala no Firebase em tempo real
             database.ref('salas/' + id).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
@@ -404,7 +458,16 @@
                     amIHost = true;
                 }
 
-                // Gerenciamento de Interface: Lobby vs Jogo em Andamento
+                if (localRoomStatus === "lobby" && roomStatus === "jogando") {
+                    triggerStartAnimation();
+                }
+
+                if (localRoomStatus === "jogando" && roomStatus === "lobby") {
+                    resetarEstadoLocalJogo();
+                }
+
+                localRoomStatus = roomStatus;
+
                 const lobbyPanel = document.getElementById('lobby-panel');
                 const playerArea = document.getElementById('player-area');
                 const hostStartBtn = document.getElementById('btn-host-start');
@@ -415,10 +478,26 @@
                     playerArea.style.opacity = "0.25";
                     playerArea.style.pointerEvents = "none";
                     timerMsg.innerText = "Aguardando início no lobby...";
+                    document.getElementById('btn-ready-toggle').style.display = "block";
                     
                     if (amIHost) {
                         hostStartBtn.style.display = "block";
+                        hostStartBtn.innerText = "Iniciar Jogo 🚀";
+                        hostStartBtn.onclick = forçarInicioPartida;
                     }
+
+                    if (data.jogadores) {
+                        let totalP = 0;
+                        let readyP = 0;
+                        for (let p in data.jogadores) {
+                            totalP++;
+                            if (data.jogadores[p].ready) readyP++;
+                        }
+                        if (totalP > 0 && readyP === totalP && amIHost) {
+                            forçarInicioPartida();
+                        }
+                    }
+
                 } else if (roomStatus === "jogando") {
                     lobbyPanel.style.display = "none";
                     if (myStatus === "jogando") {
@@ -428,24 +507,43 @@
                     if (!data.timerStart) {
                         timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
                     }
+
+                    if (data.jogadores) {
+                        let totalP = 0;
+                        let finishedP = 0;
+                        for (let p in data.jogadores) {
+                            totalP++;
+                            if (data.jogadores[p].status === "ganhou" || data.jogadores[p].status === "perdeu") {
+                                finishedP++;
+                            }
+                        }
+                        if (totalP > 0 && finishedP === totalP) {
+                            lobbyPanel.style.display = "block";
+                            document.getElementById('btn-ready-toggle').style.display = "none";
+                            if (amIHost) {
+                                hostStartBtn.style.display = "block";
+                                hostStartBtn.innerText = "Preparar Próxima Partida 🔄";
+                                hostStartBtn.onclick = prepararProximaPartida;
+                                document.getElementById('lobby-status-desc').innerText = "Fim de jogo! Clique acima para reiniciar a sala.";
+                            } else {
+                                document.getElementById('lobby-status-desc').innerText = "Fim de jogo! Aguardando o Host preparar a próxima rodada...";
+                            }
+                        }
+                    }
                 }
 
-                // Monitoramento do Timer Battle Royale
-                if (data.timerStart && !timerInterval) {
+                if (data.timerStart) {
                     iniciarContagemRegressivaBR(data.timerStart);
                 }
 
-                // Renderizar feed de Espectador / Lista de Jogadores
                 if (data.jogadores) {
                     renderizarEspectadores(data.jogadores);
                 }
             });
 
-            // Capturar teclado físico do PC
             window.addEventListener('keydown', handlePhysicalKeyboard);
         }
 
-        // Alternar Estado de Pronto no Lobby
         function alternarPronto() {
             isReady = !isReady;
             const btnReady = document.getElementById('btn-ready-toggle');
@@ -459,14 +557,72 @@
             atualizarMeuStatusNoFirebase();
         }
 
-        // Host força o início da partida
         function forçarInicioPartida() {
             database.ref('salas/' + roomId).update({
                 status: "jogando"
             });
         }
 
-        // Processar Teclado Físico
+        function prepararProximaPartida() {
+            const novaPalavra = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
+            database.ref('salas/' + roomId + '/jogadores').once('value', (snapshot) => {
+                const jogadores = snapshot.val();
+                let updates = {};
+                for (let p in jogadores) {
+                    updates[`salas/${roomId}/jogadores/${p}/status`] = "jogando";
+                    updates[`salas/${roomId}/jogadores/${p}/linhaAtual`] = 0;
+                    updates[`salas/${roomId}/jogadores/${p}/ready`] = false;
+                    updates[`salas/${roomId}/jogadores/${p}/grid`] = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+                    updates[`salas/${roomId}/jogadores/${p}/palpites`] = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+                }
+                updates[`salas/${roomId}/status`] = "lobby";
+                updates[`salas/${roomId}/palavra`] = novaPalavra;
+                updates[`salas/${roomId}/timerStart`] = null;
+                
+                database.ref().update(updates).then(() => {
+                    resetarEstadoLocalJogo();
+                });
+            });
+        }
+
+        function resetarEstadoLocalJogo() {
+            currentRow = 0;
+            currentCol = 0;
+            maxRowsAllowed = 6;
+            myStatus = "jogando";
+            isReady = false;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+            gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+            
+            for (let r = 0; r < 6; r++) {
+                const rowDiv = document.getElementById(`row-${r}`);
+                rowDiv.className = 'grid-row';
+                for (let c = 0; c < 5; c++) {
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    cell.innerText = "";
+                    cell.className = 'cell';
+                }
+            }
+            
+            document.querySelectorAll('.key').forEach(k => {
+                k.classList.remove('correct', 'present', 'absent');
+            });
+            document.getElementById('game-keyboard').style.opacity = "1";
+            document.getElementById('game-keyboard').style.pointerEvents = "all";
+            
+            const btnReady = document.getElementById('btn-ready-toggle');
+            btnReady.innerText = "Marcar como Pronto";
+            btnReady.style.background = "var(--color-present)";
+            
+            document.getElementById('timer-display').style.display = "none";
+            document.getElementById('timer-message').innerText = "Aguardando a partida iniciar...";
+            fecharOverlay();
+        }
+
         function handlePhysicalKeyboard(e) {
             if (myStatus !== "jogando" || roomStatus !== "jogando") return;
             const key = e.key.toUpperCase();
@@ -475,7 +631,6 @@
             else if (/^[A-Z]$/.test(key)) pressKey(key);
         }
 
-        // Processar Entrada de Teclas (Físico ou Virtual)
         function pressKey(key) {
             if (myStatus !== "jogando" || roomStatus !== "jogando") return;
 
@@ -500,12 +655,10 @@
             }
         }
 
-        // Validar e Colorir Palpite + Colorir o Teclado
         function verificarPalpite() {
             const palpiteArray = guesses[currentRow];
             const palavraDigitada = palpiteArray.join("").toUpperCase();
 
-            // VALIDAÇÃO COM O DICIONÁRIO INTEGRADO
             if (!DICIONARIO.includes(palavraDigitada)) {
                 alert(`⚠️ A palavra "${palavraDigitada}" não existe no dicionário! Escreva uma palavra válida.`);
                 return; 
@@ -514,7 +667,6 @@
             let corretoContagem = 0;
             let palavraCheck = palavraSecreta.split("");
 
-            // Primeiro passo: Encontrar letras certas no lugar certo (Verde)
             for (let i = 0; i < 5; i++) {
                 const cell = document.getElementById(`cell-${currentRow}-${i}`);
                 if (palpiteArray[i] === palavraSecreta[i]) {
@@ -525,7 +677,6 @@
                 }
             }
 
-            // Segundo passo: Encontrar letras existentes em posições erradas (Amarelo ou Cinza)
             for (let i = 0; i < 5; i++) {
                 if (gridStates[currentRow][i] === 'c') continue;
                 
@@ -542,13 +693,11 @@
                 }
             }
 
-            // ATUALIZAÇÃO DO TECLADO VIRTUAL DE BAIXO
             for (let i = 0; i < 5; i++) {
                 const letra = palpiteArray[i];
                 const keyElement = document.getElementById(`key-${letra}`);
                 if (keyElement) {
                     const statusLetra = gridStates[currentRow][i]; 
-                    
                     if (statusLetra === 'c') {
                         keyElement.classList.remove('present', 'absent');
                         keyElement.classList.add('correct');
@@ -567,7 +716,6 @@
 
             atualizarMeuStatusNoFirebase();
 
-            // Condição de Vitória
             if (corretoContagem === 5) {
                 myStatus = "ganhou";
                 atualizarMeuStatusNoFirebase();
@@ -578,6 +726,7 @@
                     }
                 });
                 
+                triggerGrandVictory();
                 mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Assista ao desespero dos seus oponentes contra o relógio.");
                 return;
             }
@@ -590,8 +739,8 @@
             }
         }
 
-        // Lógica de Redução de Linhas pelo Cronômetro Battle Royale
         function iniciarContagemRegressivaBR(timestampInicioServidor) {
+            if (timerInterval) return;
             const msgElement = document.getElementById('timer-message');
             const timerElement = document.getElementById('timer-display');
             timerElement.style.display = "block";
@@ -603,7 +752,7 @@
                     const estimatedServerTime = Date.now() + offset;
                     const segundosDecorridos = Math.floor((estimatedServerTime - timestampInicioServidor) / 1000);
                     
-                    const tempoFase1 = 120; // 2 minutos padrão
+                    const tempoFase1 = 120; 
                     
                     if (segundosDecorridos < tempoFase1) {
                         const tempoRestante = tempoFase1 - segundosDecorridos;
@@ -614,12 +763,18 @@
                     else {
                         const tempoExtra = segundosDecorridos - tempoFase1;
                         const linhasApagadas = Math.floor(tempoExtra / 15) + 1;
+                        const proximaLinhaEm = 15 - (tempoExtra % 15);
                         
+                        const antigaMaxRows = maxRowsAllowed;
                         maxRowsAllowed = 6 - linhasApagadas;
                         if (maxRowsAllowed < 0) maxRowsAllowed = 0;
 
-                        timerElement.innerText = "TEMPO ESGOTADO!";
-                        msgElement.innerText = `Linhas destruídas! Máximo permitido: ${maxRowsAllowed}`;
+                        timerElement.innerText = `💣 PRÓXIMA ELIMINAÇÃO: ${proximaLinhaEm}s`;
+                        msgElement.innerText = `Linhas destruídas: ${linhasApagadas} | Máximo de linhas permitido: ${maxRowsAllowed}`;
+
+                        if (maxRowsAllowed < antigaMaxRows && myStatus === "jogando") {
+                            triggerBombFlash();
+                        }
 
                         for (let r = 0; r < 6; r++) {
                             const row = document.getElementById(`row-${r}`);
@@ -629,7 +784,7 @@
                         }
 
                         if (currentRow >= maxRowsAllowed && myStatus === "jogando") {
-                            marcarComoDerrota("O tempo expirou e suas linhas foram deletadas!");
+                            marcarComoDerrota("O tempo expirou e suas linhas foram destruídas!");
                         }
                     }
                 });
@@ -639,6 +794,7 @@
         function marcarComoDerrota(motivo) {
             myStatus = "perdeu";
             atualizarMeuStatusNoFirebase();
+            triggerGrandDeath();
             mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}. Você entrou no Modo Espectador.`);
             document.getElementById('game-keyboard').style.opacity = "0.3";
             document.getElementById('game-keyboard').style.pointerEvents = "none";
@@ -646,11 +802,14 @@
 
         function atualizarMeuStatusNoFirebase() {
             if (!roomId || !username) return;
+            const avatarUrl = document.getElementById('input-avatar').value.trim();
             database.ref('salas/' + roomId + '/jogadores/' + username).set({
                 status: myStatus,
                 linhaAtual: currentRow,
                 grid: gridStates,
-                ready: isReady
+                palpites: guesses, // Envia as letras digitadas em tempo real para o Firebase
+                ready: isReady,
+                avatar: avatarUrl
             });
         }
 
@@ -659,9 +818,7 @@
             container.innerHTML = "";
 
             for (let player in jogadoresObjeto) {
-                if (player === username) continue;
-
-                const pData = jogadoresObjeto[player];
+                const pData = jugadoresObjeto[player];
                 const card = document.createElement('div');
                 card.className = `player-card ${pData.status || ''}`;
 
@@ -676,7 +833,9 @@
                     if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
                 }
 
-                header.innerHTML = `<span>${player}</span><span>${statusLabel}</span>`;
+                const imgTag = pData.avatar ? `<img src="${pData.avatar}" style="width:26px; height:26px; border-radius:50%; object-fit:cover; margin-right:8px; border:1px solid #555;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 width=%2226%22 height=%2226%22><circle cx=%2212%22 cy=%2212%22 r=%2212%22 fill=%23444 /><text x=%2250%%22 y=%2255%%22 font-size=%2212%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>👤</text></svg>'">` : `<span style="font-size:1.1rem; margin-right:8px;">👤</span>`;
+
+                header.innerHTML = `<div style="display:flex; align-items:center;">${imgTag} <span>${player} ${player === username ? '(Você)' : ''}</span></div><span>${statusLabel}</span>`;
                 card.appendChild(header);
 
                 const miniGrid = document.createElement('div');
@@ -692,6 +851,12 @@
                             if (pData.grid[r] && pData.grid[r][c]) {
                                 mCell.classList.add(pData.grid[r][c]);
                             }
+                            
+                            // CONDIÇÃO ATUALIZADA: Revela o palpite real se o jogador já morreu ou ganhou!
+                            if ((pData.status === "ganhou" || pData.status === "perdeu") && pData.palpites && pData.palpites[r] && pData.palpites[r][c]) {
+                                mCell.innerText = pData.palpites[r][c];
+                            }
+                            
                             mRow.appendChild(mCell);
                         }
                         miniGrid.appendChild(mRow);
@@ -700,6 +865,34 @@
                 card.appendChild(miniGrid);
                 container.appendChild(card);
             }
+        }
+
+        function triggerStartAnimation() {
+            const overlay = document.getElementById('start-match-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.style.display = 'none'; }, 1500);
+        }
+
+        function triggerBombFlash() {
+            const boardGrid = document.getElementById('board-grid');
+            boardGrid.style.animation = 'shake 0.5s';
+            setTimeout(() => { boardGrid.style.animation = ''; }, 500);
+
+            const flash = document.getElementById('bomb-flash');
+            flash.classList.add('bomb-active');
+            setTimeout(() => { flash.classList.remove('bomb-active'); }, 800);
+        }
+
+        function triggerGrandVictory() {
+            const overlay = document.getElementById('grand-victory-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.style.display = 'none'; }, 3000);
+        }
+
+        function triggerGrandDeath() {
+            const overlay = document.getElementById('grand-death-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.style.display = 'none'; }, 3000);
         }
 
         function mostrarOverlay(titulo, mensagem) {
