@@ -91,7 +91,7 @@
         .player-card { display: flex; justify-content: space-between; align-items: center; background: #2c2c2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 5px solid #86868b; text-align: left; }
         .player-card.ganhou { border-left-color: var(--color-correct); }
         .player-card.perdeu { border-left-color: #ff453a; }
-        .player-card-header { font-weight: bold; font-size: 0.9rem; }
+        .player-card-header { font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; }
         
         /* Mini Grid for Spectating */
         .mini-grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 2px; width: 80px; margin-top: 5px; }
@@ -107,13 +107,16 @@
         .ranking-table th { color: var(--color-present); font-weight: bold; }
         .ranking-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 8px; border: 1px solid #555; }
 
-        /* Overlay Alerts */
+        /* Overlay Alerts & Tutorial */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
-        .overlay-content { background: #1c1c1e; padding: 40px; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 400px; transition: all 0.3s ease; }
+        .overlay-content { background: #1c1c1e; padding: 40px; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 450px; transition: all 0.3s ease; }
         .overlay h2 { font-size: 2rem; margin-bottom: 10px; }
+        
+        .tutorial-text { font-size: 1rem; color: #ccc; text-align: left; line-height: 1.6; margin-bottom: 20px; }
+        .tutorial-text span { font-weight: bold; padding: 2px 6px; border-radius: 4px; color: white; }
 
         /* Banner de Anúncios */
-        .banner-carousel { margin-top: 20px; width: 100%; text-align: center; border-radius: 8px; overflow: hidden; border: 1px solid var(--color-border); background: #1c1c1e; max-height: 80px; display: flex; justify-content: center; align-items: center; }
+        .banner-carousel { width: 100%; text-align: center; border-radius: 8px; overflow: hidden; border: 1px solid var(--color-border); background: #1c1c1e; max-height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
         .banner-carousel img { max-width: 100%; height: auto; max-height: 80px; display: block; cursor: pointer; transition: transform 0.2s; }
         .banner-carousel img:hover { transform: scale(1.02); }
 
@@ -122,11 +125,7 @@
         footer a { color: var(--color-present); text-decoration: none; font-weight: bold; }
         footer a:hover { text-decoration: underline; }
 
-        /* ========================================================
-           SISTEMA DE ANIMAÇÕES IMPACTANTES E CHAMATIVAS (NOVAS)
-           ======================================================== */
-        
-        /* 1. Animação de Início de Partida (Letreiro Splash) */
+        /* Animações (Iguais à versão anterior) */
         @keyframes splashIn {
             0% { transform: translate(-50%, -50%) scale(0) rotate(-15deg); opacity: 0; }
             40% { transform: translate(-50%, -50%) scale(1.4) rotate(10deg); opacity: 1; }
@@ -134,15 +133,8 @@
             100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; filter: blur(10px); }
         }
         .splash-start-title {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 3.8rem; font-weight: 900; color: #ff9500;
-            text-shadow: 0 0 20px #ff9500, 0 0 40px #ff453a;
-            z-index: 9999; pointer-events: none;
-            animation: splashIn 1.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            font-family: 'Impact', sans-serif; letter-spacing: 3px; text-align: center; width: 100%;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3.8rem; font-weight: 900; color: #ff9500; text-shadow: 0 0 20px #ff9500, 0 0 40px #ff453a; z-index: 9999; pointer-events: none; animation: splashIn 1.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; font-family: 'Impact', sans-serif; letter-spacing: 3px; text-align: center; width: 100%;
         }
-
-        /* Tremor Geral da Tela/Grid */
         @keyframes screenShake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             10% { transform: translate(-2px, -3px) rotate(-1deg); }
@@ -157,8 +149,6 @@
             100% { transform: translate(1px, -1px) rotate(0deg); }
         }
         .apply-shake { animation: screenShake 0.4s ease-in-out; }
-
-        /* 2. Animação de Dano na Linha Removida/Concluída com erro */
         @keyframes rowDamageEffect {
             0% { transform: scale(1); background-color: rgba(255, 69, 58, 0.6); box-shadow: 0 0 30px #ff453a; }
             15% { transform: translateX(-15px) scale(1.03); }
@@ -169,42 +159,23 @@
             100% { transform: scale(1); background-color: transparent; box-shadow: none; }
         }
         .row-damage-anim { animation: rowDamageEffect 0.55s ease-in-out; z-index: 10; }
-
-        /* 3. Animações de Vitória */
         @keyframes winPulse {
             0% { box-shadow: 0 0 25px 5px rgba(83, 141, 78, 0.6); transform: scale(1); }
             50% { box-shadow: 0 0 50px 25px rgba(83, 141, 78, 0.9); transform: scale(1.04); }
             100% { box-shadow: 0 0 25px 5px rgba(83, 141, 78, 0.6); transform: scale(1); }
         }
         .overlay-win { animation: winPulse 1.4s infinite; border: 4px solid var(--color-correct) !important; background: #142416 !important; }
-        
-        @keyframes winBackground {
-            0% { background-color: #121213; }
-            50% { background-color: #173019; }
-            100% { background-color: #121213; }
-        }
+        @keyframes winBackground { 0% { background-color: #121213; } 50% { background-color: #173019; } 100% { background-color: #121213; } }
         .body-win-active { animation: winBackground 2s infinite; }
-
-        /* 4. Animações de Derrota */
         @keyframes losePulse {
             0% { box-shadow: 0 0 25px 5px rgba(255, 69, 58, 0.6); transform: scale(1); }
             50% { box-shadow: 0 0 50px 25px rgba(255, 69, 58, 0.9); transform: scale(1.04); }
             100% { box-shadow: 0 0 25px 5px rgba(255, 69, 58, 0.6); transform: scale(1); }
         }
         .overlay-lose { animation: losePulse 1.4s infinite; border: 4px solid #ff453a !important; background: #2b1414 !important; }
-        
-        @keyframes loseBackground {
-            0% { background-color: #121213; }
-            50% { background-color: #331414; }
-            100% { background-color: #121213; }
-        }
-        /* Toast de aviso */
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
+        @keyframes loseBackground { 0% { background-color: #121213; } 50% { background-color: #331414; } 100% { background-color: #121213; } }
         .body-lose-active { animation: loseBackground 2s infinite; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
     </style>
 </head>
@@ -214,9 +185,10 @@
         <h1>TERMO BATTLE ROYALE 👑</h1>
         <p>O último sobrevivente que adivinhar a palavra vence!</p>
 
-        <div style="margin-bottom: 15px;">
-            <label style="display: inline-flex; align-items: center; gap: 8px; background: #1c1c1e; padding: 8px 16px; border-radius: 20px; border: 1px solid var(--color-border); cursor: pointer; font-size: 0.9rem;">
-                <input type="checkbox" id="check-colorblind" onchange="alternarDaltonismo()" style="width: auto; margin: 0;"> 👁️ Ativar Modo Daltônico (Alto Contraste)
+        <div style="margin-bottom: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+            <button onclick="document.getElementById('tutorial-overlay').style.display='flex'" class="btn-secondary" style="width: auto; padding: 8px 16px; margin: 0; font-size: 0.9rem;">Como Jogar 📖</button>
+            <label style="display: inline-flex; align-items: center; gap: 8px; background: #1c1c1e; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--color-border); cursor: pointer; font-size: 0.9rem;">
+                <input type="checkbox" id="check-colorblind" onchange="alternarDaltonismo()" style="width: auto; margin: 0;"> 👁️ Daltonismo
             </label>
         </div>
         
@@ -264,8 +236,8 @@
             <button onclick="entrarNaSala()" class="btn-secondary">Entrar na Sala</button>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button onclick="alert('Sugestão enviada via GitHub!')" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">💡 Sugestão</button>
-                <button onclick="alert('Entre em contato pelo repositório oficial!')" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">📢 Anuncie Aqui</button>
+                <a href="https://URL_DA_SUA_SUGESTAO_AQUI.com" target="_blank" class="btn-secondary" style="display:inline-block; padding: 10px; font-size: 0.85rem; text-decoration: none; text-align:center; flex:1; border-radius: 6px; color: white;">💡 Sugestão</a>
+                <a href="https://URL_DO_SEU_ANUNCIO_AQUI.com" target="_blank" class="btn-secondary" style="display:inline-block; padding: 10px; font-size: 0.85rem; text-decoration: none; text-align:center; flex:1; border-radius: 6px; color: white;">📢 Anuncie Aqui</a>
             </div>
         </div>
 
@@ -302,8 +274,8 @@
             <div id="lobby-panel" class="lobby-container">
                 <div id="lobby-kick-timer"></div>
                 <button class="btn-ready" id="btn-ready-toggle" onclick="alternarPronto()">Marcar como Pronto</button>
-                <button class="btn-start" id="btn-host-start" onclick="forçarInicioPartida()" style="display: none; margin-top: 10px;">Iniciar Jogo 🚀</button>
-                <p id="lobby-status-desc" style="margin-top: 10px; font-size: 0.9rem; color: #b59f3b;">Aguardando jogadores ficarem prontos...</p>
+                <button class="btn-start" id="btn-host-start" onclick="forçarInicioPartida()" style="display: none; margin-top: 10px;">Iniciar Jogo (Host) 🚀</button>
+                <p id="lobby-status-desc" style="margin-top: 10px; font-size: 0.9rem; color: #b59f3b;">Aguardando jogadores ficarem prontos... O jogo iniciará automaticamente!</p>
                 <button onclick="abandonarSala()" class="btn-secondary btn-danger" style="margin-top: 15px; padding: 6px; font-size: 0.85rem; width: auto;">Sair da Sala 🚪</button>
             </div>
 
@@ -314,6 +286,12 @@
         <div class="game-layout">
             <div class="main-game-area" id="player-area">
                 <div class="grid" id="board-grid"></div>
+
+                <div class="banner-carousel">
+                    <a id="banner-redirect" href="#" target="_blank">
+                        <img id="banner-media" src="" alt="Anúncio">
+                    </a>
+                </div>
 
                 <div class="keyboard" id="game-keyboard">
                     <div class="key-row">
@@ -351,12 +329,6 @@
                         <button class="key wide" onclick="pressKey('ENTER')">ENTER</button>
                     </div>
                 </div>
-
-                <div class="banner-carousel">
-                    <a id="banner-redirect" href="#" target="_blank">
-                        <img id="banner-media" src="" alt="Anúncio">
-                    </a>
-                </div>
             </div>
 
             <div class="spectator-panel">
@@ -366,16 +338,33 @@
         </div>
     </div>
 
+    <div id="tutorial-overlay" class="overlay">
+        <div class="overlay-content">
+            <h2 style="color: var(--color-present);">Como Jogar 📖</h2>
+            <div class="tutorial-text">
+                O objetivo é adivinhar a palavra de 5 letras.<br><br>
+                Após cada tentativa, a cor das letras muda para mostrar o quão perto você está:<br><br>
+                <span style="background-color: var(--color-correct);">VERDE</span> A letra faz parte da palavra e está na posição correta.<br><br>
+                <span style="background-color: var(--color-present);">AMARELO</span> A letra faz parte da palavra, mas está na posição errada.<br><br>
+                <span style="background-color: var(--color-absent);">CINZA</span> A letra não faz parte da palavra.<br><br>
+                <hr style="border-color: #333; margin: 15px 0;">
+                <strong style="color: #ff9500;">⚔️ MODO BATTLE ROYALE:</strong><br>
+                Jogue contra amigos! Assim que o primeiro jogador adivinhar a palavra, o modo "Morte Súbita" é ativado. Um cronômetro se inicia, e os jogadores restantes perderão uma tentativa (linha) a cada 2 minutos!
+            </div>
+            <button onclick="document.getElementById('tutorial-overlay').style.display='none'">Entendi, vamos jogar!</button>
+        </div>
+    </div>
+
     <div id="game-overlay" class="overlay">
         <div class="overlay-content" id="overlay-wrapper">
             <h2 id="overlay-title">FIM DE JOGO</h2>
             <p id="overlay-body"></p>
+            <button id="btn-restart-game" onclick="reiniciarPartida()" class="btn-start" style="display:none; margin-top:15px; margin-bottom: 10px;">Reiniciar Partida 🔄</button>
             <button onclick="fecharOverlay()" class="btn-secondary">Voltar para o Jogo (Espectar)</button>
             <button onclick="abandonarSala()" class="btn-secondary btn-danger" style="margin-top:10px;">Voltar ao Menu Principal</button>
         </div>
     </div>
 
-    <!-- ── OVERLAY DE VERIFICAÇÃO DE PRESENÇA NO LOBBY ── -->
     <div id="presence-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:200;">
         <div style="background:#1c1c1e; padding:40px; border-radius:12px; border:2px solid #ff9500; text-align:center; max-width:360px;">
             <div style="font-size:3rem; margin-bottom:10px;">👀</div>
@@ -391,8 +380,8 @@
 
     <script>
         const LISTA_ANUNCIOS = [
-            { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Anuncie+Aqui+Seu+Produto!&theme=dark", link: "https://github.com/kayronnbr" },
-            { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Gostou+do+Jogo?+Envie+Sugestões!&theme=dark", link: "https://github.com/kayronnbr/termo-battleroyale" }
+            { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Anuncie+Aqui+Seu+Produto!&theme=dark", link: "https://URL_DO_SEU_ANUNCIO_AQUI.com" },
+            { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Gostou+do+Jogo?+Envie+Sugestões!&theme=dark", link: "https://URL_DA_SUA_SUGESTAO_AQUI.com" }
         ];
         let bannerAtualIndex = 0;
 
@@ -410,7 +399,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Dicionário corrigido (Array linear simples de strings)
+        // Array cru. O .filter(w => w.length === 5) garante que palavras de 4 letras não passem
         const DICIONARIO_COMPLETO = [
             "ABAFO", "ABALO", "ABATE", "ABONO", "ABRIL", "ACASO", "ACENO", "ACESO", "ACIDA", "ACIDO",
             "ACIMA", "ACOES", "ADEUS", "ADIAR", "ADOTO", "ADUBO", "ADVIR", "AFAGO", "AFETO", "AFIAR",
@@ -496,7 +485,7 @@
             "RUINA", "RUMOR", "RURAL", "SABAO", "SABER", "SABIO", "SAFRA", "SAGAZ", "SALAO", "SALDO", 
             "SALSA", "SALTA", "SALTO", "SALVA", "SALVO", "SAMBA", "SANTO", "SAQUE", "SARAR", "SARDA", 
             "SAUDE", "SEITA", "SEIVA", "SEIXO", "SESTA", "SETAS", "SEXTA", "SEXTO", "SIGLA", "SINAL", 
-            "SIRIO", "SITIO", "SOBRA", "SOBRE", "SOCIO", "SODA", "SOFA", "SOGRA", "SOGRO", "SOLDA", 
+            "SIRIO", "SITIO", "SOBRA", "SOBRE", "SOCIO", "SOGRA", "SOGRO", "SOLDA", 
             "SOLDO", "SOLTO", "SOMAR", "SONDA", "SONHO", "SOPRO", "SORTE", "SUDOR", "SUGAR", "SUICO", 
             "SUITO", "SUJAR", "SUJOS", "SULCO", "SURFE", "SURTO", "SUSTO", "SUTIL", "TABUA", "TACHO", 
             "TAIPA", "TALAO", "TALCO", "TALHA", "TALHO", "TAMPA", "TANGA", "TANGO", "TAPAR", "TARDA", 
@@ -520,15 +509,17 @@
             "VEXAR", "VIBRA", "VICIO", "VIDEO", "VIDRO", "VIELA", "VIGIA", "VIGOR", "VILAO", "VINCO", 
             "VINDA", "VINDO", "VINHA", "VINHO", "VINTE", "VIOLA", "VIRAR", "VIRIL", "VIRUS", "VISAO", 
             "VISAR", "VISCO", "VISTA", "VISTO", "VITAL", "VIUVA", "VIUVO", "VIVAZ", "VIVER", "VIVEU", 
-            "VIVOS", "VOCES", "VODKA", "VOGAL", "VOLTA", "VOLTE", "VOLTO", "VOLTS", "VOSSA", "VOSSO",
+            "VIVOS", "VOCES", "VOGAL", "VOLTA", "VOLTE", "VOLTO", "VOLTS", "VOSSA", "VOSSO",
             "VOTAR", "VOTOS", "VULGO", "VULTO", "VULVA", "XAMAN", "XEQUE", "XINGA", "XISTO", "ZANGA", 
             "ZEBRA", "ZELAR", "ZINCO", "ZOMBA", "ZUMBI"
-        ]; 
+        ];
+
+        // Garante que absolutamente TODAS as palavras tenham 5 letras. Banimos as de 4.
+        const DICIONARIO_COMPLETO = DICIONARIO_COMPLETO_BRUTO.filter(w => w.length === 5);
 
         let username = "";
         let userAvatar = "";
         let roomId = "";
-        let palavraSecreta = "TERMO"; 
         let currentRow = 0;
         let currentCol = 0;
         let maxRowsAllowed = 6;
@@ -537,17 +528,16 @@
         let amIHost = false;
         let roomStatus = "lobby";
         let timerInterval = null;
-        let countdownSeconds = 120;
         let roomListener = null;
         let jogoIniciado = false;
+        let isProcessingWord = false; // Flag para segurar o Enter enquanto carrega do DB
 
-        // ── NOVOS CONTROLES: timer por linha + presença no lobby ──
-        let lineTimerInterval = null;     // timer de 2 min que elimina linhas
-        let lineTimerSeconds = 120;       // segundos restantes no ciclo atual
-        let linhasEliminadas = 0;         // quantas linhas já foram eliminadas pelo timer
-        let alguemGanhou = false;         // flag: alguém já ganhou → iniciar timer de linha
-        let presenceCheckInterval = null; // intervalo de verificação de presença no lobby
-        let presenceDialogOpen = false;   // modal de "você ainda está aqui?" aberto
+        let lineTimerInterval = null;     
+        let lineTimerSeconds = 120;       
+        let linhasEliminadas = 0;         
+        let alguemGanhou = false;         
+        let presenceCheckInterval = null; 
+        let presenceDialogOpen = false;   
 
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
@@ -559,25 +549,22 @@
             ouvirRankingGlobal();
             inicializarEstruturaGrid();
 
-            // ── AUTO-LOGIN: recupera credenciais salvas ──
             const savedUser = localStorage.getItem('termobr_user');
             const savedPass = localStorage.getItem('termobr_pass');
             if(savedUser && savedPass) {
                 document.getElementById('login-username').value = savedUser;
                 document.getElementById('login-password').value = savedPass;
-                // Tenta logar automaticamente
                 database.ref('users/' + savedUser).once('value', snapshot => {
                     const userData = snapshot.val();
                     if(userData && userData.password === savedPass) {
                         username = savedUser;
-                        userAvatar = userData.avatar;
+                        userAvatar = userData.avatar || "https://images.placeholders.dev/?width=50&height=50&text=User";
                         document.getElementById('logged-display-name').innerText = savedUser;
                         document.getElementById('user-logged-status').style.display = 'block';
                     }
                 });
             }
             
-            // Listener para capturar teclado físico
             window.addEventListener('keydown', (e) => {
                 if (document.getElementById('screen-game').classList.contains('active')) {
                     const key = e.key.toUpperCase();
@@ -587,6 +574,25 @@
                 }
             });
         });
+
+        // Novo Sistema de Notificações Visuais para substituir os popups (alerts) do jogo
+        function mostrarToast(mensagem, corHex = '#ff9500') {
+            const aviso = document.createElement('div');
+            aviso.style.cssText = `
+                position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+                background: ${corHex}; color: #fff; font-weight: bold;
+                padding: 12px 24px; border-radius: 8px; z-index: 10000;
+                font-size: 1rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                animation: fadeInDown 0.3s ease;
+            `;
+            aviso.innerText = mensagem;
+            document.body.appendChild(aviso);
+            setTimeout(() => {
+                aviso.style.opacity = '0';
+                aviso.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => aviso.remove(), 300);
+            }, 3000);
+        }
 
         function rodarCarrosselBanners() {
             const banner = LISTA_ANUNCIOS[bannerAtualIndex];
@@ -610,7 +616,6 @@
             }
         }
 
-        /* --- SISTEMA DE AUTENTICAÇÃO SIMULADA NO REALTIME DB --- */
         function realizarRegistro() {
             const u = document.getElementById('reg-username').value.trim().toUpperCase();
             const p = document.getElementById('reg-password').value;
@@ -641,10 +646,9 @@
                 const userData = snapshot.val();
                 if(userData && userData.password === p) {
                     username = u;
-                    userAvatar = userData.avatar;
+                    userAvatar = userData.avatar || "https://images.placeholders.dev/?width=50&height=50&text=User";
                     document.getElementById('logged-display-name').innerText = u;
                     document.getElementById('user-logged-status').style.display = 'block';
-                    // ── SALVAR LOGIN ──
                     localStorage.setItem('termobr_user', u);
                     localStorage.setItem('termobr_pass', p);
                     alert(`Bem-vindo de volta, ${u}! 🎮 (Login salvo)`);
@@ -666,7 +670,7 @@
                 if(userData && userData.password === p) {
                     database.ref('users/' + u + '/avatar').set(av).then(() => {
                         if(username === u) userAvatar = av;
-                        alert("Foto de perfil updated!");
+                        alert("Foto de perfil atualizada!");
                     });
                 } else {
                     alert("Credenciais incorretas.");
@@ -681,10 +685,9 @@
             document.getElementById('user-logged-status').style.display = 'none';
             document.getElementById('login-username').value = '';
             document.getElementById('login-password').value = '';
-            alert("Você saiu da conta. Login salvo foi removido.");
+            alert("Você saiu da conta.");
         }
 
-        /* --- OPERAÇÕES DE SALA E LOBBY --- */
         function ouvirSalasPublicas() {
             database.ref('rooms').on('value', snapshot => {
                 const container = document.getElementById('public-rooms-list');
@@ -719,8 +722,9 @@
                 }
 
                 arr.forEach(u => {
+                    const av = u.avatar || "https://images.placeholders.dev/?width=50&height=50&text=User";
                     const row = document.createElement('tr');
-                    row.innerHTML = `<td><img class="ranking-avatar" src="${u.avatar}"><strong>${u.username}</strong></td>
+                    row.innerHTML = `<td><img class="ranking-avatar" src="${av}"><strong>${u.username}</strong></td>
                                      <td style="color:var(--color-correct); font-weight:bold;">${u.vitorias}</td>
                                      <td style="color:#ff453a;">${u.derrotas}</td>`;
                     tbody.appendChild(row);
@@ -734,12 +738,15 @@
             const isPublic = document.getElementById('check-room-public').checked;
             const palavra = DICIONARIO_COMPLETO[Math.floor(Math.random() * DICIONARIO_COMPLETO.length)];
 
+            // Anti-cheat: Encripta com Base64 para não lerem a resposta na aba Rede/DB facilmente
+            const palavraSegura = btoa(palavra);
+
             const rData = {
                 id: idSugerido,
                 publica: isPublic,
                 status: 'lobby',
                 host: username,
-                palavraSecreta: palavra,
+                palavraSecreta: palavraSegura,
                 tempoRestante: 120
             };
 
@@ -761,7 +768,7 @@
 
                 roomId = targetId;
                 amIHost = (room.host === username);
-                isReady = amIHost; // O criador entra automaticamente pronto
+                isReady = amIHost; 
 
                 database.ref(`rooms/${roomId}/players/${username}`).set({
                     username: username,
@@ -778,28 +785,44 @@
 
         function copiarCodigoSala() {
             navigator.clipboard.writeText(roomId);
-            alert("Código da sala copiado!");
+            mostrarToast("Código da sala copiado!", "var(--color-present)");
         }
 
         function alternarPronto() {
+            if(amIHost) return; // O host está sempre pronto no lobby dele
             isReady = !isReady;
-            document.getElementById('btn-ready-toggle').innerText = isReady ? "Pronto! (Clique para cancelar)" : "Marcar como Pronto";
+            document.getElementById('btn-ready-toggle').innerText = isReady ? "Pronto! (Aguardando...)" : "Marcar como Pronto";
             document.getElementById('btn-ready-toggle').style.background = isReady ? "var(--color-correct)" : "var(--color-present)";
             database.ref(`rooms/${roomId}/players/${username}/ready`).set(isReady);
         }
 
         function forçarInicioPartida() {
-            database.ref(`rooms/${roomId}/players`).once('value', snap => {
-                let todosProntos = true;
-                snap.forEach(p => { if(!p.val().ready) todosProntos = false; });
-                
-                if(!todosProntos) {
-                    if(!confirm("Alguns jogadores não estão prontos. Iniciar mesmo assim?")) return;
-                }
-                // Limpa campo de timer de linha no Firebase
-                database.ref(`rooms/${roomId}/lineTimerSeconds`).set(120);
-                database.ref(`rooms/${roomId}/status`).set('jogando');
+            database.ref(`rooms/${roomId}/lineTimerSeconds`).set(120);
+            database.ref(`rooms/${roomId}/status`).set('jogando');
+        }
+
+        function reiniciarPartida() {
+            if (!amIHost) return;
+            const palavraNova = DICIONARIO_COMPLETO[Math.floor(Math.random() * DICIONARIO_COMPLETO.length)];
+            
+            database.ref(`rooms/${roomId}`).update({
+                status: 'lobby',
+                vencedor: null,
+                palavraSecreta: btoa(palavraNova),
+                lineTimerSeconds: 120
             });
+
+            database.ref(`rooms/${roomId}/players`).once('value', snap => {
+                const updates = {};
+                snap.forEach(child => {
+                    updates[`${child.key}/status`] = "jogando";
+                    updates[`${child.key}/gridStates`] = "";
+                    updates[`${child.key}/ready`] = child.key === username; // O host já entra pronto
+                });
+                database.ref(`rooms/${roomId}/players`).update(updates);
+            });
+            fecharOverlay();
+            resetarVisualJogoLocal();
         }
 
         function conectarSalaListener() {
@@ -807,28 +830,46 @@
 
             document.getElementById('room-title').innerHTML = `SALA: ${roomId} <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar Código</button>`;
 
-            // Inicia verificação de presença assim que entra no lobby
             iniciarVerificacaoPresenca();
 
             roomListener = database.ref('rooms/' + roomId).on('value', snapshot => {
                 if(!snapshot.exists()) return;
                 const room = snapshot.val();
                 roomStatus = room.status;
-                palavraSecreta = room.palavraSecreta;
 
-                document.getElementById('btn-host-start').style.display = amIHost && room.status === 'lobby' ? 'block' : 'none';
+                // Controle Auto-Start para o Host
+                if(amIHost && room.status === 'lobby') {
+                    let todosProntos = true;
+                    let numJogadores = 0;
+                    if(room.players) {
+                        Object.values(room.players).forEach(p => {
+                            numJogadores++;
+                            if(!p.ready) todosProntos = false;
+                        });
+                    } else { todosProntos = false; }
+
+                    document.getElementById('btn-host-start').style.display = 'block';
+
+                    // Se tem mais de 1 pessoa e todo mundo marcou pronto, inicia o jogo!
+                    if(todosProntos && numJogadores > 1) {
+                        forçarInicioPartida();
+                    }
+                } else {
+                    document.getElementById('btn-host-start').style.display = 'none';
+                }
+
+                if (room.status === 'lobby' && jogoIniciado) {
+                    resetarVisualJogoLocal(); // Se o status voltar para lobby (Restart do Host)
+                }
 
                 if(room.status === 'jogando' && !jogoIniciado) {
                     jogoIniciado = true;
-                    // Para a verificação de presença — jogo começou
                     if(presenceCheckInterval) clearInterval(presenceCheckInterval);
 
                     document.getElementById('lobby-panel').style.display = 'none';
-                    // Timer fica oculto até alguém ganhar
                     document.getElementById('timer-display').style.display = 'none';
                     document.getElementById('timer-message').innerText = "Adivinhe a palavra! O timer inicia quando alguém vencer. ⚔️";
 
-                    // --- [ANIMAÇÃO] INÍCIO DA PARTIDA CHAMATIVA ---
                     const splash = document.createElement('div');
                     splash.className = 'splash-start-title';
                     splash.innerText = 'PARTIDA INICIADA! ⚔️';
@@ -840,38 +881,38 @@
                     setTimeout(() => gridContainer.classList.remove('apply-shake'), 400);
                 }
 
-                // ── Detecta quando alguém ganhou: ativa o timer de linha para os demais ──
                 if(room.status === 'jogando' && room.vencedor && !alguemGanhou) {
                     alguemGanhou = true;
                     if(myStatus === 'jogando') {
-                        // Mostra o timer e começa a eliminar linhas
                         document.getElementById('timer-display').style.display = 'block';
                         document.getElementById('timer-message').innerText = `⚠️ ${room.vencedor} ganhou! Agora você corre contra o tempo!`;
-                        mostrarAviso(`🏆 ${room.vencedor} acertou a palavra! Agora o tempo conta!`, '#ff9500');
+                        mostrarToast(`🏆 ${room.vencedor} acertou a palavra! O relógio começou!`, '#ff9500');
                         iniciarTimerDeLinha();
                     }
                 }
 
-                // ── Sincroniza display do timer a partir do Firebase (para não-hosts) ──
                 if(room.lineTimerSeconds !== undefined && !amIHost && alguemGanhou && myStatus === 'jogando') {
                     atualizarVisualTimer(room.lineTimerSeconds);
                 }
 
                 if(room.status === 'encerrado') {
                     if(lineTimerInterval) clearInterval(lineTimerInterval);
-                    finalizarPartidaLocalmente(room.vencedor, "A partida foi encerrada. O vencedor foi " + (room.vencedor || "Ninguém"));
+                    exibirDerrotaFinal(room.vencedor);
                 }
 
                 renderizarPainelEspectadores(room.players);
             });
         }
 
-        // ─────────────────────────────────────────────────────────────────
-        //  NOVO SISTEMA DE TIMER: elimina 1 linha a cada 2 min após alguém ganhar
-        // ─────────────────────────────────────────────────────────────────
+        async function exibirDerrotaFinal(vencedor) {
+            const snap = await database.ref(`rooms/${roomId}/palavraSecreta`).once('value');
+            let txt = "???";
+            if(snap.exists()) txt = atob(snap.val()).toUpperCase();
+            let msg = `A partida foi encerrada. O vencedor foi ${vencedor || "Ninguém"}. A palavra era: ${txt}`;
+            exibirOverlayFimJogo("PARTIDA ENCERRADA", msg);
+        }
 
         function iniciarTimerDeLinha() {
-            // Só inicia se ainda há linhas para eliminar e o jogador ainda está jogando
             if(lineTimerInterval) clearInterval(lineTimerInterval);
             lineTimerSeconds = 120;
             atualizarVisualTimer(lineTimerSeconds);
@@ -880,7 +921,6 @@
                 lineTimerSeconds--;
                 atualizarVisualTimer(lineTimerSeconds);
 
-                // Salva no Firebase para sincronizar exibição (apenas o host dispara para evitar conflito)
                 if(amIHost && roomId) {
                     database.ref(`rooms/${roomId}/lineTimerSeconds`).set(lineTimerSeconds);
                 }
@@ -897,13 +937,10 @@
                 return;
             }
 
-            // Calcula a próxima linha disponível para eliminar (de baixo para cima)
-            // Elimina a última linha ainda disponível (maxRowsAllowed - 1 - linhasEliminadas)
             linhasEliminadas++;
             const novoMax = 6 - linhasEliminadas;
 
             if(novoMax <= 0 || currentRow >= novoMax) {
-                // Sem linhas disponíveis — jogador perde
                 clearInterval(lineTimerInterval);
                 verificarFimDeJogoPorTempo();
                 return;
@@ -911,65 +948,37 @@
 
             maxRowsAllowed = novoMax;
 
-            // Marca visualmente a linha eliminada
             const linhaAlvo = document.getElementById(`row-${novoMax}`);
             if(linhaAlvo) {
                 linhaAlvo.classList.add('eliminated');
-                // Animação de tremor
                 linhaAlvo.classList.add('row-damage-anim');
                 setTimeout(() => linhaAlvo.classList.remove('row-damage-anim'), 600);
             }
 
-            // Flash na tela avisando que perdeu uma linha
-            mostrarAviso(`⚠️ Linha eliminada pelo timer! Restam ${novoMax} tentativas!`, '#ff9500');
-
-            // Reinicia o ciclo de 2 minutos
+            mostrarToast(`⚠️ Linha eliminada! Restam ${novoMax} tentativas!`, '#ff9500');
             lineTimerSeconds = 120;
         }
 
-        function verificarFimDeJogoPorTempo() {
+        async function verificarFimDeJogoPorTempo() {
             if(myStatus === 'jogando') {
                 myStatus = "perdeu";
                 database.ref(`rooms/${roomId}/players/${username}/status`).set("perdeu");
                 computarPontuacaoFinal(false);
 
-                // Animação de derrota
+                const snap = await database.ref(`rooms/${roomId}/palavraSecreta`).once('value');
+                const palavra = snap.exists() ? atob(snap.val()).toUpperCase() : "???";
+
                 document.body.classList.add('body-lose-active');
-                exibirOverlayFimJogo("TEMPO ESGOTADO! ⏱️", `Suas linhas acabaram. A palavra secreta era: ${palavraSecreta}`);
+                exibirOverlayFimJogo("TEMPO ESGOTADO! ⏱️", `Suas linhas acabaram. A palavra secreta era: ${palavra}`);
                 document.getElementById('overlay-wrapper').className = 'overlay-content overlay-lose';
 
                 verificarSeTodosPerderam();
             }
         }
 
-        function dispararContagemRegressiva() {
-            // Mantida por compatibilidade — a contagem real agora é a de linha
-            // (chamada quando o host inicia a partida; aqui apenas sincroniza o timer)
-        }
-
-        function mostrarAviso(texto, cor) {
-            const aviso = document.createElement('div');
-            aviso.style.cssText = `
-                position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-                background: ${cor || '#ff9500'}; color: #000; font-weight: bold;
-                padding: 12px 24px; border-radius: 8px; z-index: 9999;
-                font-size: 1rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-                animation: fadeInDown 0.3s ease;
-            `;
-            aviso.innerText = texto;
-            document.body.appendChild(aviso);
-            setTimeout(() => aviso.remove(), 3500);
-        }
-
-        // ─────────────────────────────────────────────────────────────────
-        //  SISTEMA DE VERIFICAÇÃO DE PRESENÇA NO LOBBY (a cada 2 min)
-        // ─────────────────────────────────────────────────────────────────
-
         function iniciarVerificacaoPresenca() {
             if(presenceCheckInterval) clearInterval(presenceCheckInterval);
-            // Dispara verificação a cada 120 segundos
             presenceCheckInterval = setInterval(() => {
-                // Só verifica se ainda está no lobby
                 if(roomStatus !== 'lobby' || jogoIniciado) {
                     clearInterval(presenceCheckInterval);
                     return;
@@ -989,12 +998,10 @@
                 document.getElementById('presence-countdown').innerText = countdown;
                 if(countdown <= 0) {
                     clearInterval(presTimer);
-                    // Não respondeu — expulsa
                     expulsarPorInatividade();
                 }
             }, 1000);
 
-            // Guarda o timer para poder cancelar ao confirmar
             document.getElementById('presence-overlay').dataset.timerId = presTimer;
         }
 
@@ -1003,7 +1010,6 @@
             clearInterval(timerId);
             presenceDialogOpen = false;
             document.getElementById('presence-overlay').style.display = 'none';
-            // Atualiza timestamp de presença no Firebase
             if(roomId && username) {
                 database.ref(`rooms/${roomId}/players/${username}/lastSeen`).set(Date.now());
             }
@@ -1022,7 +1028,6 @@
             const seg = (segundos % 60).toString().padStart(2, '0');
             const el = document.getElementById('timer-display');
             el.innerText = `⏳ ${min}:${seg}`;
-            // Fica vermelho nos últimos 30 segundos
             el.style.color = segundos <= 30 ? '#ff453a' : '#ff9500';
         }
 
@@ -1049,10 +1054,15 @@
                 }
                 miniGridHTML += `</div>`;
 
+                const av = p.avatar || "https://images.placeholders.dev/?width=50&height=50&text=User";
+
                 card.innerHTML = `
                     <div>
-                        <div class="player-card-header">${p.username} (${p.status.toUpperCase()})</div>
-                        <div style="font-size:0.8rem; color:#86868b;">${p.ready ? '🟢 Pronto' : '⏳ Aguardando'}</div>
+                        <div class="player-card-header">
+                            <img src="${av}" style="width:22px; height:22px; border-radius:50%; margin-right:8px; border:1px solid #555; object-fit:cover;">
+                            ${p.username} (${p.status.toUpperCase()})
+                        </div>
+                        <div style="font-size:0.8rem; color:#86868b; margin-top:2px;">${p.ready ? '🟢 Pronto' : '⏳ Aguardando'}</div>
                     </div>
                     ${miniGridHTML}
                 `;
@@ -1063,9 +1073,8 @@
         function abandonarSala() {
             if(roomId && username) {
                 database.ref(`rooms/${roomId}/players/${username}`).remove().then(() => {
-                    // Se for o Host, derruba a sala por segurança de herança
                     if(amIHost) database.ref(`rooms/${roomId}`).remove();
-                    resetarEstadoJogo();
+                    resetarEstadoJogoMenu();
                     mudarTela('setup');
                 });
             } else {
@@ -1073,7 +1082,6 @@
             }
         }
 
-        /* --- MECÂNICA DE INTERAÇÃO DO TABULEIRO DE TERMO --- */
         function inicializarEstruturaGrid() {
             const board = document.getElementById('board-grid');
             board.innerHTML = "";
@@ -1092,7 +1100,7 @@
         }
 
         function pressKey(letra) {
-            if(roomStatus !== 'jogando' || myStatus !== 'jogando') return;
+            if(roomStatus !== 'jogando' || myStatus !== 'jogando' || isProcessingWord) return;
 
             if (letra === 'BACKSPACE') {
                 if (currentCol > 0) {
@@ -1104,7 +1112,7 @@
                 if (currentCol === 5) {
                     processarSubmissaoPalavra();
                 } else {
-                    alert("A palavra precisa ter 5 letras.");
+                    mostrarToast("A palavra precisa ter 5 letras.", "#ff453a");
                 }
             } else {
                 if (currentCol < 5) {
@@ -1115,92 +1123,102 @@
             }
         }
 
-        function processarSubmissaoPalavra() {
+        async function processarSubmissaoPalavra() {
             const palTentada = guesses[currentRow].join("");
             
             if(!DICIONARIO_COMPLETO.includes(palTentada) && palTentada !== "TERMO") {
-                alert("Palavra inválida no dicionário.");
+                mostrarToast("Palavra não encontrada no dicionário.", "#ff453a");
                 return;
             }
 
-            const gabarito = palavraSecreta.toUpperCase();
-            let arrEstados = ["a", "a", "a", "a", "a"]; // c=correct, p=present, a=absent
-            let letrasMarcadasGabarito = Array(5).fill(false);
+            isProcessingWord = true; // Bloqueia digitação enquanto processa
+            
+            try {
+                // Fetch Anti-Cheat: Baixa a palavra do BD apenas neste milissegundo exato
+                const snap = await database.ref(`rooms/${roomId}/palavraSecreta`).once('value');
+                if(!snap.exists()) return;
+                const gabarito = atob(snap.val()).toUpperCase();
 
-            // Passo 1: Validar Corretas (Verde)
-            for(let i=0; i<5; i++) {
-                if(palTentada[i] === gabarito[i]) {
-                    arrEstados[i] = "c";
-                    letrasMarcadasGabarito[i] = true;
-                    document.getElementById(`cell-${currentRow}-${i}`).classList.add('correct');
-                    document.getElementById(`key-${palTentada[i]}`).className = "key correct";
-                }
-            }
+                let arrEstados = ["a", "a", "a", "a", "a"]; 
+                let letrasMarcadasGabarito = Array(5).fill(false);
 
-            // Passo 2: Validar Presentes (Amarelo)
-            for(let i=0; i<5; i++) {
-                if(arrEstados[i] === "c") continue;
-                for(let j=0; j<5; j++) {
-                    if(!letrasMarcadasGabarito[j] && palTentada[i] === gabarito[j]) {
-                        arrEstados[i] = "p";
-                        letrasMarcadasGabarito[j] = true;
-                        break;
+                // Validar Corretas
+                for(let i=0; i<5; i++) {
+                    if(palTentada[i] === gabarito[i]) {
+                        arrEstados[i] = "c";
+                        letrasMarcadasGabarito[i] = true;
+                        document.getElementById(`cell-${currentRow}-${i}`).classList.add('correct');
+                        document.getElementById(`key-${palTentada[i]}`).className = "key correct";
                     }
                 }
-                if(arrEstados[i] === "p") {
-                    document.getElementById(`cell-${currentRow}-${i}`).classList.add('present');
-                    const kNode = document.getElementById(`key-${palTentada[i]}`);
-                    if(!kNode.classList.contains('correct')) kNode.className = "key present";
-                } else {
-                    document.getElementById(`cell-${currentRow}-${i}`).classList.add('absent');
-                    const kNode = document.getElementById(`key-${palTentada[i]}`);
-                    if(!kNode.classList.contains('correct') && !kNode.classList.contains('present')) kNode.className = "key absent";
+
+                // Validar Presentes
+                for(let i=0; i<5; i++) {
+                    if(arrEstados[i] === "c") continue;
+                    for(let j=0; j<5; j++) {
+                        if(!letrasMarcadasGabarito[j] && palTentada[i] === gabarito[j]) {
+                            arrEstados[i] = "p";
+                            letrasMarcadasGabarito[j] = true;
+                            break;
+                        }
+                    }
+                    if(arrEstados[i] === "p") {
+                        document.getElementById(`cell-${currentRow}-${i}`).classList.add('present');
+                        const kNode = document.getElementById(`key-${palTentada[i]}`);
+                        if(!kNode.classList.contains('correct')) kNode.className = "key present";
+                    } else {
+                        document.getElementById(`cell-${currentRow}-${i}`).classList.add('absent');
+                        const kNode = document.getElementById(`key-${palTentada[i]}`);
+                        if(!kNode.classList.contains('correct') && !kNode.classList.contains('present')) kNode.className = "key absent";
+                    }
                 }
-            }
 
-            gridStates[currentRow] = arrEstados;
-            enviarEstadoGridFirebase();
+                gridStates[currentRow] = arrEstados;
+                enviarEstadoGridFirebase();
 
-            if(palTentada === gabarito) {
-                myStatus = "ganhou";
-                database.ref(`rooms/${roomId}/players/${username}/status`).set("ganhou");
-                database.ref(`rooms/${roomId}/status`).set("encerrado");
-                database.ref(`rooms/${roomId}/vencedor`).set(username);
-                computarPontuacaoFinal(true);
+                if(palTentada === gabarito) {
+                    myStatus = "ganhou";
+                    database.ref(`rooms/${roomId}/players/${username}/status`).set("ganhou");
+                    database.ref(`rooms/${roomId}/status`).set("encerrado");
+                    database.ref(`rooms/${roomId}/vencedor`).set(username);
+                    computarPontuacaoFinal(true);
 
-                // Para o timer de linha (vencedor não precisa mais)
-                if(lineTimerInterval) clearInterval(lineTimerInterval);
-                document.getElementById('timer-display').style.display = 'none';
+                    if(lineTimerInterval) clearInterval(lineTimerInterval);
+                    document.getElementById('timer-display').style.display = 'none';
 
-                // --- [ANIMAÇÃO] VITÓRIA CHAMATIVA ---
-                document.body.classList.add('body-win-active');
-                exibirOverlayFimJogo("VITÓRIA! 👑", "Você acertou a palavra secreta e sobreviveu ao Battle Royale!");
-                document.getElementById('overlay-wrapper').className = 'overlay-content overlay-win';
-                return;
-            }
+                    document.body.classList.add('body-win-active');
+                    exibirOverlayFimJogo("VITÓRIA! 👑", "Você acertou a palavra secreta e sobreviveu!");
+                    document.getElementById('overlay-wrapper').className = 'overlay-content overlay-win';
+                    return;
+                }
 
-            // --- [ANIMAÇÃO] DANO/LINHA CONCLUÍDA SEM ACERTAR A PALAVRA ---
-            const linhaAlvo = document.getElementById(`row-${currentRow}`);
-            linhaAlvo.classList.add('row-damage-anim');
-            setTimeout(() => linhaAlvo.classList.remove('row-damage-anim'), 600);
+                const linhaAlvo = document.getElementById(`row-${currentRow}`);
+                linhaAlvo.classList.add('row-damage-anim');
+                setTimeout(() => linhaAlvo.classList.remove('row-damage-anim'), 600);
 
-            currentRow++;
-            currentCol = 0;
+                currentRow++;
+                currentCol = 0;
 
-            if(currentRow === maxRowsAllowed) {
-                myStatus = "perdeu";
-                database.ref(`rooms/${roomId}/players/${username}/status`).set("perdeu");
-                document.getElementById(`row-${currentRow-1}`).classList.add('eliminated');
-                verificarSeTodosPerderam();
-                computarPontuacaoFinal(false);
+                if(currentRow === maxRowsAllowed) {
+                    myStatus = "perdeu";
+                    database.ref(`rooms/${roomId}/players/${username}/status`).set("perdeu");
+                    document.getElementById(`row-${currentRow-1}`).classList.add('eliminated');
+                    verificarSeTodosPerderam();
+                    computarPontuacaoFinal(false);
 
-                // --- [ANIMAÇÃO] DERROTA CHAMATIVA ---
-                document.body.classList.add('body-lose-active');
-                document.getElementById('board-grid').classList.add('apply-shake');
-                setTimeout(() => document.getElementById('board-grid').classList.remove('apply-shake'), 400);
+                    document.body.classList.add('body-lose-active');
+                    document.getElementById('board-grid').classList.add('apply-shake');
+                    setTimeout(() => document.getElementById('board-grid').classList.remove('apply-shake'), 400);
 
-                exibirOverlayFimJogo("ELIMINADO 💀", `Suas chances acabaram! A palavra era: ${gabarito}`);
-                document.getElementById('overlay-wrapper').className = 'overlay-content overlay-lose';
+                    exibirOverlayFimJogo("ELIMINADO 💀", `Suas chances acabaram! A palavra era: ${gabarito}`);
+                    document.getElementById('overlay-wrapper').className = 'overlay-content overlay-lose';
+                }
+
+            } catch (err) {
+                mostrarToast("Erro ao comunicar com servidor. Tente novamente.", "#ff453a");
+                console.error(err);
+            } finally {
+                isProcessingWord = false; // Libera digitação
             }
         }
 
@@ -1219,21 +1237,6 @@
             });
         }
 
-        function verificarFimDeJogoPorTempo() {
-            if(myStatus === 'jogando') {
-                myStatus = "perdeu";
-                database.ref(`rooms/${roomId}/players/${username}/status`).set("perdeu");
-                computarPontuacaoFinal(false);
-
-                // --- [ANIMAÇÃO] DERROTA POR TEMPO ---
-                document.body.classList.add('body-lose-active');
-                exibirOverlayFimJogo("TEMPO ESGOTADO! ⏱️", `O tempo acabou. A palavra secreta era: ${palavraSecreta}`);
-                document.getElementById('overlay-wrapper').className = 'overlay-content overlay-lose';
-
-                verificarSeTodosPerderam();
-            }
-        }
-
         function computarPontuacaoFinal(venceu) {
             database.ref(`users/${username}`).once('value', snap => {
                 if(!snap.exists()) return;
@@ -1246,11 +1249,6 @@
             });
         }
 
-        function finalizarPartidaLocalmente(vencedor, msg) {
-            exibirOverlayFimJogo("PARTIDA ENCERRADA", `${msg}. A palavra era: ${palavraSecreta}`);
-        }
-
-        /* --- GERENCIAMENTO DE TELAS E POPUPS --- */
         function mudarTela(tela) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(`screen-${tela}`).classList.add('active');
@@ -1260,42 +1258,59 @@
             document.getElementById('overlay-title').innerText = titulo;
             document.getElementById('overlay-body').innerText = corpo;
             document.getElementById('game-overlay').style.display = 'flex';
+            
+            // Botão de reiniciar (somente Host)
+            if (amIHost && roomStatus === 'encerrado') {
+                document.getElementById('btn-restart-game').style.display = 'inline-block';
+            } else {
+                document.getElementById('btn-restart-game').style.display = 'none';
+            }
         }
 
         function fecharOverlay() {
             document.getElementById('game-overlay').style.display = 'none';
-            // Reseta classes do wrapper de efeitos
             document.getElementById('overlay-wrapper').className = 'overlay-content';
             document.body.classList.remove('body-win-active', 'body-lose-active');
         }
 
-        function resetarEstadoJogo() {
-            if(timerInterval) clearInterval(timerInterval);
-            if(lineTimerInterval) clearInterval(lineTimerInterval);
-            if(presenceCheckInterval) clearInterval(presenceCheckInterval);
-            if(roomId && roomListener) database.ref('rooms/' + roomId).off('value', roomListener);
-            
-            roomId = ""; palavraSecreta = "TERMO"; currentRow = 0; currentCol = 0;
-            myStatus = "jogando"; isReady = false; amIHost = false; roomStatus = "lobby"; jogoIniciado = false;
-            alguemGanhou = false; linhasEliminadas = 0; maxRowsAllowed = 6; lineTimerSeconds = 120;
-            presenceDialogOpen = false;
+        function resetarVisualJogoLocal() {
+            jogoIniciado = false;
+            alguemGanhou = false;
+            linhasEliminadas = 0;
+            maxRowsAllowed = 6;
+            currentRow = 0;
+            currentCol = 0;
+            lineTimerSeconds = 120;
+            myStatus = "jogando";
             guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
             gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
             
-            document.getElementById('lobby-panel').style.display = 'block';
+            if(lineTimerInterval) clearInterval(lineTimerInterval);
             document.getElementById('timer-display').style.display = 'none';
             document.getElementById('timer-message').innerText = "Aguardando a partida iniciar...";
-            document.getElementById('btn-ready-toggle').innerText = "Marcar como Pronto";
-            document.getElementById('btn-ready-toggle').style.background = "var(--color-present)";
-            document.getElementById('presence-overlay').style.display = 'none';
+            document.getElementById('lobby-panel').style.display = 'block';
             
-            fecharOverlay();
+            if(!amIHost) {
+                isReady = false; 
+                document.getElementById('btn-ready-toggle').innerText = "Marcar como Pronto";
+                document.getElementById('btn-ready-toggle').style.background = "var(--color-present)";
+            }
+            
             inicializarEstruturaGrid();
-            
-            // Reseta classes do teclado virtual
             document.querySelectorAll('.key').forEach(k => {
                 if(!k.classList.contains('wide')) k.className = "key";
             });
+            fecharOverlay();
+        }
+
+        function resetarEstadoJogoMenu() {
+            if(timerInterval) clearInterval(timerInterval);
+            if(presenceCheckInterval) clearInterval(presenceCheckInterval);
+            if(roomId && roomListener) database.ref('rooms/' + roomId).off('value', roomListener);
+            roomId = ""; roomStatus = "lobby"; amIHost = false; isReady = false;
+            presenceDialogOpen = false;
+            document.getElementById('presence-overlay').style.display = 'none';
+            resetarVisualJogoLocal();
         }
     </script>
 </body>
