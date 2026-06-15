@@ -105,8 +105,6 @@
         
         <div class="auth-container">
             <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12" autocomplete="off">
-            
-            <!-- Campo de URL de Perfil Reintroduzido -->
             <input type="text" id="input-avatar" placeholder="URL da Imagem de Perfil (ou Base64)" autocomplete="off">
             
             <div class="divider">---</div>
@@ -120,10 +118,10 @@
             <input type="text" id="input-room-id" placeholder="Código da Sala (Ex: 4812)">
             <button onclick="entrarNaSala()" class="btn-secondary">Entrar na Sala</button>
 
-            <!-- Novos botões de Sugestão e Anúncio no Menu -->
+            <!-- BOTOES ATUALIZADOS PARA REDIRECIONAMENTO EXTERNO -->
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button onclick="abrirModalSugestao()" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">💡 Sugestão</button>
-                <button onclick="abrirModalAnuncio()" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">📢 Anuncie Aqui</button>
+                <button onclick="abrirFormularioSugestao()" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">💡 Sugestão</button>
+                <button onclick="abrirFormularioAnuncio()" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">📢 Anuncie Aqui</button>
             </div>
         </div>
 
@@ -190,7 +188,6 @@
                     </div>
                 </div>
 
-                <!-- Roleta de Banners posicionada perfeitamente embaixo do teclado -->
                 <div class="banner-carousel">
                     <a id="banner-redirect" href="#" target="_blank">
                         <img id="banner-media" src="" alt="Anúncio">
@@ -214,7 +211,6 @@
     </div>
 
     <script>
-        // CONFIGURAÇÃO DOS BANNERS (Mude os links e imagens aqui para gerenciar os anúncios de forma fácil)
         const LISTA_ANUNCIOS = [
             { 
                 imagem: "https://images.placeholders.dev/?width=468&height=80&text=Anuncie+Aqui+Seu+Produto!&theme=dark", 
@@ -227,7 +223,6 @@
         ];
         let bannerAtualIndex = 0;
 
-        // CONFIGURAÇÕES DO SEU FIREBASE INTEGRADAS:
         const firebaseConfig = {
             apiKey: "AIzaSyBJZ89pk9LNXGM-SdOdl5SmymqJJ8cMPRU",
             authDomain: "termo-battle-royale.firebaseapp.com",
@@ -242,7 +237,6 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // DICIONÁRIO DE PALAVRAS VÁLIDAS E DE SORTEIO (SEM ACENTOS)
         const DICIONARIO = [
             "POBRE", "FILMA", "TERMO", "JOGOS", "NUVEM", "TEXTO", "LETRA", "BRUTA", "PLANO", "PODER",
             "SAGAZ", "PORTA", "CORPO", "FESTA", "GRUPO", "TEMPO", "AMIGO", "CARRO", "CASAL", "CHAVE",
@@ -329,7 +323,6 @@
             "ZONZO", "ZOOM", "ZORRA", "ZORRO", "ZUMBI"
         ];
 
-        // Variáveis Globais de Estado do Jogo
         let username = "";
         let roomId = "";
         let palavraSecreta = "TERMO"; 
@@ -345,7 +338,6 @@
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
 
-        // Carregar Informações do LocalStorage e Iniciar Elementos
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('termo_br_username');
             if (savedName) document.getElementById('input-username').value = savedName;
@@ -355,10 +347,9 @@
 
             ouvirSalasPublicas();
             rodarCarrosselBanners();
-            setInterval(rodarCarrosselBanners, 6000); // Rotaciona os anúncios a cada 6 segundos
+            setInterval(rodarCarrosselBanners, 6000);
         });
 
-        // Função Simplificada para a Roleta de Banners
         function rodarCarrosselBanners() {
             if (LISTA_ANUNCIOS.length === 0) return;
             const media = document.getElementById('banner-media');
@@ -370,16 +361,22 @@
             bannerAtualIndex = (bannerAtualIndex + 1) % LISTA_ANUNCIOS.length;
         }
 
-        // Funções para os botões do Menu Principal
-        function abrirModalSugestao() {
-            mostrarOverlay("💡 ENVIAR SUGESTÃO", "Tem uma ideia legal ou quer relatar um problema? Envie sua sugestão diretamente para o e-mail: suporte-termo@provedor.com ou pelo repositório oficial do projeto.");
+        /* ----------------------------------------------------
+           FUNÇÕES ALTERADAS PARA LINKS EXTERNOS DE FORMULÁRIOS
+           ---------------------------------------------------- */
+        function abrirFormularioSugestao() {
+            // Insira a URL do seu formulário de sugestão entre as aspas abaixo
+            const urlFormulario = "https://sua-url-aqui.com/formulario-sugestao";
+            window.open(urlFormulario, "_blank");
         }
 
-        function abrirModalAnuncio() {
-            mostrarOverlay("📢 ANUNCIE SEU BANNER", "Quer colocar sua marca na nossa roleta de anúncios e alcançar centenas de jogadores diariamente? Entre em contato pelo e-mail: parcerias@provedor.com para consultar preços.");
+        function abrirFormularioAnuncio() {
+            // Insira a URL do seu formulário de anúncios entre as aspas abaixo
+            const urlFormulario = "https://sua-url-aqui.com/formulario-anuncio";
+            window.open(urlFormulario, "_blank");
         }
+        /* ---------------------------------------------------- */
 
-        // Inicializar Grade do Tabuleiro Visual
         const board = document.getElementById('board-grid');
         for (let r = 0; r < 6; r++) {
             const rowDiv = document.createElement('div');
@@ -405,7 +402,6 @@
             });
         }
 
-        // Criar Nova Sala (Host)
         function criarNovaSala() {
             username = document.getElementById('input-username').value.trim();
             const avatarUrl = document.getElementById('input-avatar').value.trim();
@@ -431,7 +427,6 @@
             });
         }
 
-        // Ouvir Salas Públicas Ativas
         function ouvirSalasPublicas() {
             database.ref('salas').on('value', (snapshot) => {
                 const todasAsSalas = snapshot.val();
@@ -474,7 +469,6 @@
             entrarNaSalaComId(roomId);
         }
 
-        // Entrar em Sala Manualmente
         function entrarNaSala() {
             username = document.getElementById('input-username').value.trim();
             const avatarUrl = document.getElementById('input-avatar').value.trim();
@@ -498,6 +492,7 @@
         }
 
         function entrarNaSalaComId(id) {
+            roomId = id; 
             document.getElementById('screen-setup').classList.remove('active');
             document.getElementById('screen-game').classList.add('active');
             document.getElementById('room-title').innerHTML = `SALA: <span style="color:var(--color-present)">${id}</span> <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar</button>`;
@@ -524,6 +519,18 @@
                     playerArea.style.pointerEvents = "none";
                     timerMsg.innerText = "Aguardando início no lobby...";
                     if (amIHost) hostStartBtn.style.display = "block";
+
+                    if (data.jogadores) {
+                        const listaJogadores = Object.values(data.jogadores);
+                        const totalJogadores = listaJogadores.length;
+                        const prontos = listaJogadores.filter(p => p.ready).length;
+                        
+                        document.getElementById('lobby-status-desc').innerText = `Jogadores prontos: ${prontos} / ${totalJogadores}`;
+
+                        if (totalJogadores > 0 && prontos === totalJogadores && amIHost) {
+                            database.ref('salas/' + id).update({ status: "jogando" });
+                        }
+                    }
                 } else if (roomStatus === "jogando") {
                     lobbyPanel.style.display = "none";
                     if (myStatus === "jogando") {
@@ -716,7 +723,6 @@
             document.getElementById('game-keyboard').style.pointerEvents = "none";
         }
 
-        // Atualização contendo o link de avatar do jogador
         function atualizarMeuStatusNoFirebase() {
             if (!roomId || !username) return;
             const avatarUrl = document.getElementById('input-avatar').value.trim() || "";
@@ -732,7 +738,6 @@
             });
         }
 
-        // Renderiza a foto de perfil ao lado do nome do jogador
         function renderizarEspectadores(jogadoresObjeto) {
             const container = document.getElementById('spectator-list');
             container.innerHTML = "";
@@ -755,7 +760,6 @@
                     if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
                 }
 
-                // Criação da tag de avatar dinâmica
                 let imgAvatarHtml = `<span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:#48484a; text-align:center; line-height:22px; font-size:0.75rem; margin-right:8px;">👤</span>`;
                 if (pData.avatar && pData.avatar.trim() !== "") {
                     imgAvatarHtml = `<img src="${pData.avatar}" style="width:22px; height:22px; border-radius:50%; object-fit: cover; margin-right:8px; vertical-align: middle; border: 1px solid #555;">`;
