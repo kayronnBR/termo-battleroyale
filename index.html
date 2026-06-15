@@ -28,7 +28,7 @@
         p { color: #86868b; margin-bottom: 20px; }
 
         /* Setup Screen */
-        .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 400px; margin: 40px auto; }
+        .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 400px; margin: 20px auto; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: #2c2c2e; border: 1px solid var(--color-border); color: white; border-radius: 6px; font-size: 1rem; text-align: center; }
         button { width: 100%; padding: 12px; background: var(--color-correct); border: none; color: white; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
         button:hover { background: #43723f; }
@@ -76,15 +76,15 @@
         .player-card { background: #2c2c2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 5px solid #86868b; text-align: left; }
         .player-card.ganhou { border-left-color: var(--color-correct); }
         .player-card.perdeu { border-left-color: #ff453a; }
-        .player-card-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+        .player-card-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
         
         /* Mini Grid for Spectating */
-        .mini-grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 3px; width: 115px; margin-top: 8px; }
-        .mini-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
-        .mini-cell { width: 20px; height: 20px; border: 1px solid #444; background: #1a1a1c; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; text-transform: uppercase; }
-        .mini-cell.c { background: var(--color-correct); border-color: var(--color-correct); }
-        .mini-cell.p { background: var(--color-present); border-color: var(--color-present); }
-        .mini-cell.a { background: var(--color-absent); border-color: var(--color-absent); }
+        .mini-grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 2px; width: 80px; margin-top: 5px; }
+        .mini-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+        .mini-cell { width: 14px; height: 14px; border: 1px solid #444; background: #1a1a1c; }
+        .mini-cell.c { background: var(--color-correct); }
+        .mini-cell.p { background: var(--color-present); }
+        .mini-cell.a { background: var(--color-absent); }
 
         /* Overlay Alerts */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
@@ -99,13 +99,24 @@
         <p>O último sobrevivente que adivinhar a palavra vence!</p>
         
         <div class="auth-container">
-            <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12">
-            <input type="text" id="input-avatar" placeholder="URL da Foto de Perfil (Opcional)">
+            <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12" autocomplete="off">
             <div class="divider">---</div>
+            
+            <label style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; cursor: pointer; font-size: 0.95rem;">
+                <input type="checkbox" id="check-room-public" style="width: auto; margin: 0;"> Tornar esta Sala Pública 🌐
+            </label>
+            
             <button onclick="criarNovaSala()">Criar Nova Sala</button>
             <div class="divider">OU</div>
             <input type="text" id="input-room-id" placeholder="Código da Sala (Ex: 4812)">
             <button onclick="entrarNaSala()" class="btn-secondary">Entrar na Sala</button>
+        </div>
+
+        <div class="auth-container" style="margin-top: 20px;">
+            <h3 style="margin-bottom: 10px; font-size: 1.1rem; color: var(--color-present);">Salas Públicas Ativas 🌐</h3>
+            <div id="public-rooms-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
+                <p style="color: #86868b; font-size: 0.9rem;">Procurando salas abertas...</p>
+            </div>
         </div>
     </div>
 
@@ -121,8 +132,6 @@
 
             <div id="timer-message" style="margin-top: 10px;">Aguardando a partida iniciar...</div>
             <div id="timer-display">02:00</div>
-            
-            <button class="btn-start" id="btn-host-reset" onclick="reiniciarSala()" style="display: none; margin-top: 15px; background: #2f6ced;">Nova Partida (Reiniciar Sala) 🔄</button>
         </div>
 
         <div class="game-layout">
@@ -183,7 +192,7 @@
     </div>
 
     <script>
-        // CONFIGURAÇÕES REAIS DO SEU FIREBASE INTEGRADAS
+        // CONFIGURAÇÕES REAIS DO SEU FIREBASE INTEGRADAS:
         const firebaseConfig = {
             apiKey: "AIzaSyBJZ89pk9LNXGM-SdOdl5SmymqJJ8cMPRU",
             authDomain: "termo-battle-royale.firebaseapp.com",
@@ -195,10 +204,11 @@
             measurementId: "G-0FECT2HL6E"
         };
 
+        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // DICIONÁRIO COMPLETO PRESERVADO
+        // DICIONÁRIO DE PALAVRAS VÁLIDAS E DE SORTEIO (SEM ACENTOS)
         const DICIONARIO = [
             "POBRE", "FILMA", "TERMO", "JOGOS", "NUVEM", "TEXTO", "LETRA", "BRUTA", "PLANO", "PODER",
             "SAGAZ", "PORTA", "CORPO", "FESTA", "GRUPO", "TEMPO", "AMIGO", "CARRO", "CASAL", "CHAVE",
@@ -231,7 +241,7 @@
             "MILHO", "MINAS", "MIOLO", "MISTO", "MITOS", "MOCO", "MOEDA", "MOER", "MOFA", "MOFO", 
             "MOLAR", "MOLDE", "MOLHO", "MONGE", "MONTE", "MORAL", "MORTE", "MORRO", "MOSCA", "MOTOR", 
             "MUDAS", "MUDO", "MUITO", "MULTA", "MUNDO", "MURO", "MUSEU", "MUSGO", "MUTUA", "NACAO", 
-            "NAVIO", "NEVOA", "NINHO", "NIVEL", "NOBRE", "NOITE", "NOIVA", "NOIVO", "NORTE", "NOSSO", 
+            "NAVIO", "NEVOA", "NinHO", "NIVEL", "NOBRE", "NOITE", "NOIVA", "NOIVO", "NORTE", "NOSSO", 
             "NOTAS", "NOVA", "NUNCA", "NUVEM", "OASIS", "OBTER", "OESTE", "OLHAR", "ONDA", "ONTEM", 
             "OPCAO", "ORGAO", "OURO", "OUTRO", "OUVIR", "OXIDO", "PACTO", "PADRE", "PAGAR", "PALHA", 
             "PALMA", "PAPEL", "PARAR", "PARDO", "PAREO", "PARTE", "PARTO", "PASSO", "PASTA", "PASTO", 
@@ -285,6 +295,7 @@
             "ZONZO", "ZOOM", "ZORRA", "ZORRO", "ZUMBI"
         ];
 
+        // Variáveis Globais de Estado do Jogo
         let username = "";
         let roomId = "";
         let palavraSecreta = "TERMO"; 
@@ -297,15 +308,18 @@
         let roomStatus = "lobby";
         let timerInterval = null;
 
+        // Estrutura da matriz de palpites locais
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
 
+        // Carregar Nome Salvo no Cache (Local Storage) e inicializar escuta de salas públicas
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('termo_br_username');
-            if (savedName) document.getElementById('input-username').value = savedName;
-            
-            const savedAvatar = localStorage.getItem('termo_br_avatar');
-            if (savedAvatar) document.getElementById('input-avatar').value = savedAvatar;
+            if (savedName) {
+                document.getElementById('input-username').value = savedName;
+            }
+            // Inicia o monitoramento das salas abertas
+            ouvirSalasPublicas();
         });
 
         // Inicializar Grade do Tabuleiro Visual
@@ -323,6 +337,7 @@
             board.appendChild(rowDiv);
         }
 
+        // Copiar Código da Sala para a Área de Transferência
         function copiarCodigoSala() {
             if (!roomId) return;
             navigator.clipboard.writeText(roomId).then(() => {
@@ -334,37 +349,100 @@
             });
         }
 
+        // Criar Nova Sala (Host)
         function criarNovaSala() {
             username = document.getElementById('input-username').value.trim();
             if (!username) return alert("Insira um nome válido!");
             
-            const avatarUrl = document.getElementById('input-avatar').value.trim();
+            // Salva nome no cache
             localStorage.setItem('termo_br_username', username);
-            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
+            
+            // SORTEANDO DIRETAMENTE DO DICIONÁRIO INTEGRADO
             const palavraEscolhida = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
+
+            // Verifica se o host quer que a sala seja pública
+            const ehPublica = document.getElementById('check-room-public').checked;
 
             database.ref('salas/' + roomId).set({
                 palavra: palavraEscolhida,
                 status: "lobby",
                 host: username,
-                timerStart: null
+                timerStart: null,
+                publica: ehPublica // Grava o tipo da sala no banco
             }).then(() => {
                 amIHost = true;
                 entrarNaSalaComId(roomId);
             });
         }
 
+        // Monitorar e listar salas que foram marcadas como públicas e estão em "lobby"
+        function ouvirSalasPublicas() {
+            database.ref('salas').on('value', (snapshot) => {
+                const todasAsSalas = snapshot.val();
+                const containerLista = document.getElementById('public-rooms-list');
+                containerLista.innerHTML = "";
+
+                let encontrouSala = false;
+
+                if (todasAsSalas) {
+                    for (let id in todasAsSalas) {
+                        const sala = todasAsSalas[id];
+                        
+                        // Filtra apenas salas públicas e que ainda não começaram a partida
+                        if (sala.publica === true && sala.status === "lobby") {
+                            encontrouSala = true;
+                            
+                            let qtdJogadores = 0;
+                            if (sala.jogadores) qtdJogadores = Object.keys(sala.jogadores).length;
+
+                            const itemSala = document.createElement('div');
+                            itemSala.style.display = "flex";
+                            itemSala.style.justifyContent = "space-between";
+                            itemSala.style.alignItems = "center";
+                            itemSala.style.background = "#2c2c2e";
+                            itemSala.style.padding = "10px";
+                            itemSala.style.borderRadius = "6px";
+                            itemSala.style.border = "1px solid var(--color-border)";
+
+                            itemSala.innerHTML = `
+                                <div style="text-align: left;">
+                                    <span style="font-weight: bold; color: var(--color-present);">Sala #${id}</span>
+                                    <div style="font-size: 0.8rem; color: #86868b;">Host: ${sala.host} | ${qtdJogadores} jog.</div>
+                                </div>
+                                <button onclick="clicarEntrarSalaPublica('${id}')" style="width: auto; margin: 0; padding: 6px 12px; font-size: 0.85rem;">Entrar</button>
+                            `;
+                            containerLista.appendChild(itemSala);
+                        }
+                    }
+                }
+
+                if (!encontrouSala) {
+                    containerLista.innerHTML = '<p style="color: #86868b; font-size: 0.9rem; margin: 5px 0;">Nenhuma sala pública disponível no momento.</p>';
+                }
+            });
+        }
+
+        // Lógica para quando um jogador clica no botão "Entrar" da lista pública
+        function clicarEntrarSalaPublica(idDaSala) {
+            username = document.getElementById('input-username').value.trim();
+            if (!username) return alert("Insira o seu Nickname antes de entrar na sala!");
+            
+            localStorage.setItem('termo_br_username', username);
+            roomId = idDaSala;
+            entrarNaSalaComId(roomId);
+        }
+
+        // Entrar em Sala Existente via Código Manual
         function entrarNaSala() {
             username = document.getElementById('input-username').value.trim();
             roomId = document.getElementById('input-room-id').value.trim();
             
             if (!username || !roomId) return alert("Preencha o nome e o código da sala!");
             
-            const avatarUrl = document.getElementById('input-avatar').value.trim();
+            // Salva nome no cache
             localStorage.setItem('termo_br_username', username);
-            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             database.ref('salas/' + roomId).once('value', (snapshot) => {
                 if (snapshot.exists()) {
@@ -387,25 +465,22 @@
 
             atualizarMeuStatusNoFirebase();
 
+            // Escutar atualizações da sala no Firebase em tempo real
             database.ref('salas/' + id).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
 
-                let oldRoomStatus = roomStatus;
                 palavraSecreta = data.palavra.toUpperCase();
                 roomStatus = data.status;
 
-                if (data.host === username) amIHost = true;
-
-                // DETECTAR SE O HOST MANDOU REINICIAR A PARTIDA PARA O LOBBY
-                if (oldRoomStatus === "jogando" && roomStatus === "lobby") {
-                    resetEstadoLocal();
+                if (data.host === username) {
+                    amIHost = true;
                 }
 
+                // Gerenciamento de Interface: Lobby vs Jogo em Andamento
                 const lobbyPanel = document.getElementById('lobby-panel');
                 const playerArea = document.getElementById('player-area');
                 const hostStartBtn = document.getElementById('btn-host-start');
-                const hostResetBtn = document.getElementById('btn-host-reset');
                 const timerMsg = document.getElementById('timer-message');
 
                 if (roomStatus === "lobby") {
@@ -413,24 +488,9 @@
                     playerArea.style.opacity = "0.25";
                     playerArea.style.pointerEvents = "none";
                     timerMsg.innerText = "Aguardando início no lobby...";
-                    hostResetBtn.style.display = "none"; 
                     
-                    if (amIHost) hostStartBtn.style.display = "block";
-
-                    // LOGICA DE INÍCIO AUTOMÁTICO SE TODOS ESTIVEREM PRONTOS
-                    if (data.jogadores) {
-                        let totalJogadores = Object.keys(data.jogadores).length;
-                        let totalProntos = 0;
-                        for (let p in data.jogadores) {
-                            if (data.jogadores[p].ready) totalProntos++;
-                        }
-                        document.getElementById('lobby-status-desc').innerText = `Jogadores prontos: ${totalProntos}/${totalJogadores}`;
-                        
-                        if (totalJogadores >= 1 && totalProntos === totalJogadores) {
-                            if (amIHost) {
-                                database.ref('salas/' + roomId).update({ status: "jogando" });
-                            }
-                        }
+                    if (amIHost) {
+                        hostStartBtn.style.display = "block";
                     }
                 } else if (roomStatus === "jogando") {
                     lobbyPanel.style.display = "none";
@@ -441,88 +501,24 @@
                     if (!data.timerStart) {
                         timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
                     }
-                    
-                    // Exibir botão de reset apenas para o Criador/Host durante o jogo
-                    if (amIHost) hostResetBtn.style.display = "block";
-                    else hostResetBtn.style.display = "none";
                 }
 
-                if (data.timerStart && !timerInterval) iniciarContagemRegressivaBR(data.timerStart);
-                if (data.jogadores) renderizarEspectadores(data.jogadores);
+                // Monitoramento do Timer Battle Royale
+                if (data.timerStart && !timerInterval) {
+                    iniciarContagemRegressivaBR(data.timerStart);
+                }
+
+                // Renderizar feed de Espectador / Lista de Jogadores
+                if (data.jogadores) {
+                    renderizarEspectadores(data.jogadores);
+                }
             });
 
+            // Capturar teclado físico do PC
             window.addEventListener('keydown', handlePhysicalKeyboard);
         }
 
-        // LIMPAR O TABULEIRO COMPLETO PARA UMA NOVA PARTIDA
-        function resetEstadoLocal() {
-            currentRow = 0;
-            currentCol = 0;
-            maxRowsAllowed = 6;
-            myStatus = "jogando";
-            isReady = false;
-            guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
-            gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
-            
-            for (let r = 0; r < 6; r++) {
-                const row = document.getElementById(`row-${r}`);
-                if (row) row.classList.remove('eliminated');
-                for (let c = 0; c < 5; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    if (cell) {
-                        cell.innerText = "";
-                        cell.className = "cell";
-                    }
-                }
-            }
-            
-            const keys = document.querySelectorAll('.key');
-            keys.forEach(k => k.classList.remove('correct', 'present', 'absent'));
-            
-            fecharOverlay();
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-            document.getElementById('timer-display').style.display = "none";
-            document.getElementById('timer-message').innerText = "Aguardando a partida iniciar...";
-            document.getElementById('game-keyboard').style.opacity = "1";
-            document.getElementById('game-keyboard').style.pointerEvents = "all";
-            
-            const btnReady = document.getElementById('btn-ready-toggle');
-            if (btnReady) {
-                btnReady.innerText = "Marcar como Pronto";
-                btnReady.style.background = "var(--color-present)";
-            }
-            
-            atualizarMeuStatusNoFirebase();
-        }
-
-        // CONTROLADOR DO HOST PARA REINICIAR A SALA INTEIRA NO FIREBASE
-        function reiniciarSala() {
-            if (!amIHost) return;
-            const novaPalavra = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
-            
-            database.ref('salas/' + roomId + '/jogadores').once('value', (snapshot) => {
-                let updates = {};
-                if (snapshot.exists()) {
-                    const jogadores = snapshot.val();
-                    for (let p in jogadores) {
-                        updates[`salas/${roomId}/jogadores/${p}/status`] = "jogando";
-                        updates[`salas/${roomId}/jogadores/${p}/linhaAtual`] = 0;
-                        updates[`salas/${roomId}/jogadores/${p}/grid`] = null;
-                        updates[`salas/${roomId}/jogadores/${p}/palpites`] = null;
-                        updates[`salas/${roomId}/jogadores/${p}/ready`] = false;
-                    }
-                }
-                updates[`salas/${roomId}/status`] = "lobby";
-                updates[`salas/${roomId}/palavra`] = novaPalavra;
-                updates[`salas/${roomId}/timerStart`] = null;
-                
-                database.ref().update(updates);
-            });
-        }
-
+        // Alternar Estado de Pronto no Lobby
         function alternarPronto() {
             isReady = !isReady;
             const btnReady = document.getElementById('btn-ready-toggle');
@@ -536,10 +532,14 @@
             atualizarMeuStatusNoFirebase();
         }
 
+        // Host força o início da partida
         function forçarInicioPartida() {
-            database.ref('salas/' + roomId).update({ status: "jogando" });
+            database.ref('salas/' + roomId).update({
+                status: "jogando"
+            });
         }
 
+        // Processar Teclado Físico
         function handlePhysicalKeyboard(e) {
             if (myStatus !== "jogando" || roomStatus !== "jogando") return;
             const key = e.key.toUpperCase();
@@ -548,6 +548,7 @@
             else if (/^[A-Z]$/.test(key)) pressKey(key);
         }
 
+        // Processar Entrada de Teclas (Físico ou Virtual)
         function pressKey(key) {
             if (myStatus !== "jogando" || roomStatus !== "jogando") return;
 
@@ -559,8 +560,11 @@
                 }
             } 
             else if (key === 'ENTER') {
-                if (currentCol === 5) verificarPalpite();
-                else alert("A palavra deve ter 5 letras!");
+                if (currentCol === 5) {
+                    verificarPalpite();
+                } else {
+                    alert("A palavra deve ter 5 letras!");
+                }
             } 
             else if (guesses[currentRow] && currentCol < 5) {
                 guesses[currentRow][currentCol] = key;
@@ -569,18 +573,21 @@
             }
         }
 
+        // Validar e Colorir Palpite + Colorir o Teclado
         function verificarPalpite() {
             const palpiteArray = guesses[currentRow];
             const palavraDigitada = palpiteArray.join("").toUpperCase();
 
+            // VALIDAÇÃO COM O DICIONÁRIO INTEGRADO
             if (!DICIONARIO.includes(palavraDigitada)) {
-                alert(`⚠️ A palavra "${palavraDigitada}" não existe no dicionário!`);
+                alert(`⚠️ A palavra "${palavraDigitada}" não existe no dicionário! Escreva uma palavra válida.`);
                 return; 
             }
 
             let corretoContagem = 0;
             let palavraCheck = palavraSecreta.split("");
 
+            // Primeiro passo: Encontrar letras certas no lugar certo (Verde)
             for (let i = 0; i < 5; i++) {
                 const cell = document.getElementById(`cell-${currentRow}-${i}`);
                 if (palpiteArray[i] === palavraSecreta[i]) {
@@ -591,6 +598,7 @@
                 }
             }
 
+            // Segundo passo: Encontrar letras existentes em posições erradas (Amarelo ou Cinza)
             for (let i = 0; i < 5; i++) {
                 if (gridStates[currentRow][i] === 'c') continue;
                 
@@ -607,11 +615,13 @@
                 }
             }
 
+            // ATUALIZAÇÃO DO TECLADO VIRTUAL DE BAIXO
             for (let i = 0; i < 5; i++) {
                 const letra = palpiteArray[i];
                 const keyElement = document.getElementById(`key-${letra}`);
                 if (keyElement) {
                     const statusLetra = gridStates[currentRow][i]; 
+                    
                     if (statusLetra === 'c') {
                         keyElement.classList.remove('present', 'absent');
                         keyElement.classList.add('correct');
@@ -630,15 +640,18 @@
 
             atualizarMeuStatusNoFirebase();
 
+            // Condição de Vitória
             if (corretoContagem === 5) {
                 myStatus = "ganhou";
                 atualizarMeuStatusNoFirebase();
                 
                 database.ref('salas/' + roomId + '/timerStart').transaction((currentVal) => {
-                    if (currentVal === null) return firebase.database.ServerValue.TIMESTAMP;
+                    if (currentVal === null) {
+                        return firebase.database.ServerValue.TIMESTAMP;
+                    }
                 });
                 
-                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Aguarde o fim da partida ou peça ao Host para iniciar outra.");
+                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Assista ao desespero dos seus oponentes contra o relógio.");
                 return;
             }
 
@@ -650,6 +663,7 @@
             }
         }
 
+        // Lógica de Redução de Linhas pelo Cronômetro Battle Royale
         function iniciarContagemRegressivaBR(timestampInicioServidor) {
             const msgElement = document.getElementById('timer-message');
             const timerElement = document.getElementById('timer-display');
@@ -661,7 +675,8 @@
                     const offset = snapshot.val() || 0;
                     const estimatedServerTime = Date.now() + offset;
                     const segundosDecorridos = Math.floor((estimatedServerTime - timestampInicioServidor) / 1000);
-                    const tempoFase1 = 120;
+                    
+                    const tempoFase1 = 120; // 2 minutos padrão
                     
                     if (segundosDecorridos < tempoFase1) {
                         const tempoRestante = tempoFase1 - segundosDecorridos;
@@ -681,11 +696,13 @@
 
                         for (let r = 0; r < 6; r++) {
                             const row = document.getElementById(`row-${r}`);
-                            if (r >= maxRowsAllowed) row.classList.add('eliminated');
+                            if (r >= maxRowsAllowed) {
+                                row.classList.add('eliminated');
+                            }
                         }
 
                         if (currentRow >= maxRowsAllowed && myStatus === "jogando") {
-                            marcarComoDerrota("O tempo expirou!");
+                            marcarComoDerrota("O tempo expirou e suas linhas foram deletadas!");
                         }
                     }
                 });
@@ -695,23 +712,18 @@
         function marcarComoDerrota(motivo) {
             myStatus = "perdeu";
             atualizarMeuStatusNoFirebase();
-            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}.`);
+            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}. Você entrou no Modo Espectador.`);
             document.getElementById('game-keyboard').style.opacity = "0.3";
             document.getElementById('game-keyboard').style.pointerEvents = "none";
         }
 
         function atualizarMeuStatusNoFirebase() {
             if (!roomId || !username) return;
-            const avatarField = document.getElementById('input-avatar');
-            const avatarUrl = avatarField ? avatarField.value.trim() : "";
-
             database.ref('salas/' + roomId + '/jogadores/' + username).set({
                 status: myStatus,
                 linhaAtual: currentRow,
                 grid: gridStates,
-                palpites: guesses, 
-                ready: isReady,
-                avatar: avatarUrl
+                ready: isReady
             });
         }
 
@@ -722,7 +734,7 @@
             for (let player in jogadoresObjeto) {
                 if (player === username) continue;
 
-                const pData = jugadoresObjeto[player];
+                const pData = jogadoresObjeto[player];
                 const card = document.createElement('div');
                 card.className = `player-card ${pData.status || ''}`;
 
@@ -737,13 +749,7 @@
                     if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
                 }
 
-                // INSERÇÃO DA FOTO DE PERFIL REDONDA DO OPONENTE
-                let avatarHtml = "";
-                if (pData.avatar) {
-                    avatarHtml = `<img src="${pData.avatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; margin-right: 8px;" onerror="this.style.display='none'">`;
-                }
-
-                header.innerHTML = `<div style="display: flex; align-items: center;">${avatarHtml}<span>${player}</span></div><span>${statusLabel}</span>`;
+                header.innerHTML = `<span>${player}</span><span>${statusLabel}</span>`;
                 card.appendChild(header);
 
                 const miniGrid = document.createElement('div');
@@ -756,14 +762,8 @@
                         for (let c = 0; c < 5; c++) {
                             const mCell = document.createElement('div');
                             mCell.className = 'mini-cell';
-                            if (pData.grid[r] && pData.grid[r][c]) mCell.classList.add(pData.grid[r][c]);
-                            
-                            // SEGURANÇA VISUAL ANTI-SPOILER EXTREMA:
-                            // Só injeta o texto se VOCÊ localmente já terminou de jogar (myStatus !== "jogando")
-                            if (myStatus !== "jogando" && pData.palpites && pData.palpites[r] && pData.palpites[r][c]) {
-                                mCell.innerText = pData.palpites[r][c];
-                            } else {
-                                mCell.innerText = ""; 
+                            if (pData.grid[r] && pData.grid[r][c]) {
+                                mCell.classList.add(pData.grid[r][c]);
                             }
                             mRow.appendChild(mCell);
                         }
