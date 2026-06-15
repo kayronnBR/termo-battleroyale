@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Termo Battle Royale 👑</title>
+    <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
@@ -45,6 +46,13 @@
         #timer-display { font-size: 1.5rem; font-weight: bold; color: #ff453a; margin-top: 5px; display: none; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
+        /* Lobby System UI */
+        .lobby-container { background: #2c2c2e; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #444; }
+        .btn-copy { display: inline-block; width: auto; padding: 4px 10px; font-size: 0.8rem; margin-left: 10px; background: #48484a; margin-top: 0; }
+        .btn-ready { background: var(--color-present); }
+        .btn-ready:hover { background: #968331; }
+        .btn-start { background: var(--color-correct); font-size: 1.1rem; }
+
         /* Wordle Grid */
         .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; }
         .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; transition: all 0.5s ease; }
@@ -54,11 +62,14 @@
         .cell.present { background-color: var(--color-present); border-color: var(--color-present); }
         .cell.absent { background-color: var(--color-absent); border-color: var(--color-absent); }
 
-        /* Keyboard */
+        /* Keyboard & Feedback Colors */
         .keyboard { display: flex; flex-direction: column; gap: 6px; }
         .key-row { display: flex; justify-content: center; gap: 4px; }
-        .key { background: #818384; border: none; color: white; padding: 14px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 0.9rem; user-select: none; }
+        .key { background: #818384; border: none; color: white; padding: 14px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; flex: 1; text-transform: uppercase; font-size: 0.9rem; user-select: none; transition: background 0.2s; }
         .key.wide { flex: 1.5; }
+        .key.correct { background-color: var(--color-correct) !important; }
+        .key.present { background-color: var(--color-present) !important; }
+        .key.absent { background-color: var(--color-absent) !important; }
 
         /* Spectator Panel */
         .spectator-panel { flex: 1; min-width: 300px; max-width: 400px; background: #1c1c1e; border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; max-height: 70vh; overflow-y: auto; }
@@ -84,6 +95,7 @@
 </head>
 <body>
 
+    <!-- TELA DE LOGIN / CRIAÇÃO DE SALA -->
     <div id="screen-setup" class="screen active">
         <h1>TERMO BATTLE ROYALE 👑</h1>
         <p>O último sobrevivente que adivinhar a palavra vence!</p>
@@ -98,64 +110,78 @@
         </div>
     </div>
 
+    <!-- TELA DO JOGO -->
     <div id="screen-game" class="screen">
         <div class="status-panel">
-            <h3 id="room-title">SALA: ----</h3>
-            <div id="timer-message">Aguardando alguém acertar...</div>
+            <h3 id="room-title">SALA: ---- <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar Código</button></h3>
+            
+            <!-- Painel de Gerenciamento do Lobby -->
+            <div id="lobby-panel" class="lobby-container">
+                <button class="btn-ready" id="btn-ready-toggle" onclick="alternarPronto()">Marcar como Pronto</button>
+                <button class="btn-start" id="btn-host-start" onclick="forçarInicioPartida()" style="display: none; margin-top: 10px;">Iniciar Jogo 🚀</button>
+                <p id="lobby-status-desc" style="margin-top: 10px; font-size: 0.9rem; color: #b59f3b;">Aguardando jogadores ficarem prontos...</p>
+            </div>
+
+            <div id="timer-message" style="margin-top: 10px;">Aguardando a partida iniciar...</div>
             <div id="timer-display">02:00</div>
         </div>
 
         <div class="game-layout">
+            <!-- Área Principal do Jogador -->
             <div class="main-game-area" id="player-area">
                 <div class="grid" id="board-grid">
-                    </div>
+                    <!-- Gerado dinamicamente via JS -->
+                </div>
 
                 <div class="keyboard" id="game-keyboard">
                     <div class="key-row">
-                        <button class="key" onclick="pressKey('Q')">Q</button>
-                        <button class="key" onclick="pressKey('W')">W</button>
-                        <button class="key" onclick="pressKey('E')">E</button>
-                        <button class="key" onclick="pressKey('R')">R</button>
-                        <button class="key" onclick="pressKey('T')">T</button>
-                        <button class="key" onclick="pressKey('Y')">Y</button>
-                        <button class="key" onclick="pressKey('U')">U</button>
-                        <button class="key" onclick="pressKey('I')">I</button>
-                        <button class="key" onclick="pressKey('O')">O</button>
-                        <button class="key" onclick="pressKey('P')">P</button>
+                        <button class="key" id="key-Q" onclick="pressKey('Q')">Q</button>
+                        <button class="key" id="key-W" onclick="pressKey('W')">W</button>
+                        <button class="key" id="key-E" onclick="pressKey('E')">E</button>
+                        <button class="key" id="key-R" onclick="pressKey('R')">R</button>
+                        <button class="key" id="key-T" onclick="pressKey('T')">T</button>
+                        <button class="key" id="key-Y" onclick="pressKey('Y')">Y</button>
+                        <button class="key" id="key-U" onclick="pressKey('U')">U</button>
+                        <button class="key" id="key-I" onclick="pressKey('I')">I</button>
+                        <button class="key" id="key-O" onclick="pressKey('O')">O</button>
+                        <button class="key" id="key-P" onclick="pressKey('P')">P</button>
                     </div>
                     <div class="key-row">
-                        <button class="key" onclick="pressKey('A')">A</button>
-                        <button class="key" onclick="pressKey('S')">S</button>
-                        <button class="key" onclick="pressKey('D')">D</button>
-                        <button class="key" onclick="pressKey('F')">F</button>
-                        <button class="key" onclick="pressKey('G')">G</button>
-                        <button class="key" onclick="pressKey('H')">H</button>
-                        <button class="key" onclick="pressKey('J')">J</button>
-                        <button class="key" onclick="pressKey('K')">K</button>
-                        <button class="key" onclick="pressKey('L')">L</button>
+                        <button class="key" id="key-A" onclick="pressKey('A')">A</button>
+                        <button class="key" id="key-S" onclick="pressKey('S')">S</button>
+                        <button class="key" id="key-D" onclick="pressKey('D')">D</button>
+                        <button class="key" id="key-F" onclick="pressKey('F')">F</button>
+                        <button class="key" id="key-G" onclick="pressKey('G')">G</button>
+                        <button class="key" id="key-H" onclick="pressKey('H')">H</button>
+                        <button class="key" id="key-J" onclick="pressKey('J')">J</button>
+                        <button class="key" id="key-K" onclick="pressKey('K')">K</button>
+                        <button class="key" id="key-L" onclick="pressKey('L')">L</button>
                         <button class="key wide" onclick="pressKey('BACKSPACE')">⌫</button>
                     </div>
                     <div class="key-row">
-                        <button class="key" onclick="pressKey('Z')">Z</button>
-                        <button class="key" onclick="pressKey('X')">X</button>
-                        <button class="key" onclick="pressKey('C')">C</button>
-                        <button class="key" onclick="pressKey('V')">V</button>
-                        <button class="key" onclick="pressKey('B')">B</button>
-                        <button class="key" onclick="pressKey('N')">N</button>
-                        <button class="key" onclick="pressKey('M')">M</button>
+                        <button class="key" id="key-Z" onclick="pressKey('Z')">Z</button>
+                        <button class="key" id="key-X" onclick="pressKey('X')">X</button>
+                        <button class="key" id="key-C" onclick="pressKey('C')">C</button>
+                        <button class="key" id="key-V" onclick="pressKey('V')">V</button>
+                        <button class="key" id="key-B" onclick="pressKey('B')">B</button>
+                        <button class="key" id="key-N" onclick="pressKey('N')">N</button>
+                        <button class="key" id="key-M" onclick="pressKey('M')">M</button>
                         <button class="key wide" onclick="pressKey('ENTER')">ENTER</button>
                     </div>
                 </div>
             </div>
 
+            <!-- Painel do Modo Espectador (Feed de todos os jogadores) -->
             <div class="spectator-panel">
                 <h2>Live Jogadores (Espectador) 👁️</h2>
                 <div id="spectator-list">
-                    </div>
+                    <!-- Outros jogadores aparecem aqui em tempo real -->
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- FIM DE JOGO OVERLAY -->
     <div id="game-overlay" class="overlay">
         <div class="overlay-content">
             <h2 id="overlay-title">FIM DE JOGO</h2>
@@ -181,6 +207,20 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        // DICIONÁRIO DE PALAVRAS VÁLIDAS DE 5 LETRAS
+        const DICIONARIO = [
+            "TERMO", "JOGOS", "NUVEM", "TEXTO", "FUEGO", "LETRA", "BRUTA", "PLANO", "PODER", "SAGAZ",
+            "PORTA", "CORPO", "FESTA", "GRUPO", "TEMPO", "AMIGO", "CARRO", "CASAL", "CHAVE", "COISA",
+            "NOITE", "PEDRA", "PONTO", "SINAL", "VENTO", "VIVAZ", "MUNDO", "BRASIL", "MUTUA", "IDEIA",
+            "FORTE", "SABOR", "SUDOR", "VALOR", "SABIO", "LIÇÃO", "JOVEM", "CAIXA", "POEMA", "RITMO",
+            "ALMA", "PLENA", "MENTE", "JUSTO", "GENTE", "TEMPO", "NORTE", "FUEGO", "SULCO", "SABER",
+            "FALAS", "CASAS", "LIVRO", "CARTA", "TREM", "LINHA", "VISTA", "CANTO", "PREÇO", "VALER",
+            "GOSTO", "FALAR", "OUVIR", "OLHAR", "CRIAR", "FAZER", "MANHÃ", "TARDE", "PONTE", "TERRA",
+            "DADOS", "GATOS", "JOGAR", "NOBRE", "NUNCA", "FÁCIL", "VÍRUS", "ÁUDIO", "MÍDIA", "TAXAS",
+            "TOTAL", "LOCAL", "GERAL", "FINAL", "FISCAL", "MORAL", "CULTURAL", "RURAL", "LEGAL", "GRAVE",
+            "BRISA", "CLIMA", "NATIV", "SALDO", "BRILH", "GIGTE", "TURMA", "POUCO", "MUITO", "CHEIO"
+        ];
+
         // Variáveis Globais de Estado do Jogo
         let username = "";
         let roomId = "";
@@ -189,11 +229,22 @@
         let currentCol = 0;
         let maxRowsAllowed = 6;
         let myStatus = "jogando"; 
+        let isReady = false;
+        let amIHost = false;
+        let roomStatus = "lobby";
         let timerInterval = null;
 
         // Estrutura da matriz de palpites locais
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
+
+        // Carregar Nome Salvo no Cache (Local Storage) ao abrir o jogo
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('termo_br_username');
+            if (savedName) {
+                document.getElementById('input-username').value = savedName;
+            }
+        });
 
         // Inicializar Grade do Tabuleiro Visual
         const board = document.getElementById('board-grid');
@@ -210,22 +261,38 @@
             board.appendChild(rowDiv);
         }
 
-        // Criar Nova Sala
+        // Copiar Código da Sala para a Área de Transferência
+        function copiarCodigoSala() {
+            if (!roomId) return;
+            navigator.clipboard.writeText(roomId).then(() => {
+                const copyBtn = document.getElementById('btn-copy-code');
+                copyBtn.innerText = "Copiado! ✅";
+                setTimeout(() => { copyBtn.innerText = "Copiar Código"; }, 2000);
+            }).catch(() => {
+                alert("Código da sala: " + roomId);
+            });
+        }
+
+        // Criar Nova Sala (Host)
         function criarNovaSala() {
             username = document.getElementById('input-username').value.trim();
             if (!username) return alert("Insira um nome válido!");
             
+            // Salva nome no cache
+            localStorage.setItem('termo_br_username', username);
+            
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
             
-            // Lista de palavras possíveis para o jogo escolher aleatoriamente
             const palavrasPool = ["TERMO", "JOGOS", "NUVEM", "TEXTO", "FUEGO", "LETRA", "BRUTA", "PLANO", "PODER", "SAGAZ"];
             const palavraEscolhida = palavrasPool[Math.floor(Math.random() * palavrasPool.length)];
 
             database.ref('salas/' + roomId).set({
                 palavra: palavraEscolhida,
-                status: "jogando",
+                status: "lobby",
+                host: username,
                 timerStart: null
             }).then(() => {
+                amIHost = true;
                 entrarNaSalaComId(roomId);
             });
         }
@@ -237,8 +304,16 @@
             
             if (!username || !roomId) return alert("Preencha o nome e o código da sala!");
             
+            // Salva nome no cache
+            localStorage.setItem('termo_br_username', username);
+            
             database.ref('salas/' + roomId).once('value', (snapshot) => {
                 if (snapshot.exists()) {
+                    const salaData = snapshot.val();
+                    if (salaData.status === "jogando") {
+                        alert("A partida nessa sala já começou!");
+                        return;
+                    }
                     entrarNaSalaComId(roomId);
                 } else {
                     alert("Sala não encontrada!");
@@ -249,23 +324,54 @@
         function entrarNaSalaComId(id) {
             document.getElementById('screen-setup').classList.remove('active');
             document.getElementById('screen-game').classList.add('active');
-            document.getElementById('room-title').innerText = `SALA: ${id}`;
+            document.getElementById('room-title').innerHTML = `SALA: <span style="color:var(--color-present)">${id}</span> <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar</button>`;
 
             atualizarMeuStatusNoFirebase();
 
-            // Escutar atualizações da sala
+            // Escutar atualizações da sala no Firebase em tempo real
             database.ref('salas/' + id).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
 
                 palavraSecreta = data.palavra.toUpperCase();
-                
+                roomStatus = data.status;
+
+                if (data.host === username) {
+                    amIHost = true;
+                }
+
+                // Gerenciamento de Interface: Lobby vs Jogo em Andamento
+                const lobbyPanel = document.getElementById('lobby-panel');
+                const playerArea = document.getElementById('player-area');
+                const hostStartBtn = document.getElementById('btn-host-start');
+                const timerMsg = document.getElementById('timer-message');
+
+                if (roomStatus === "lobby") {
+                    lobbyPanel.style.display = "block";
+                    playerArea.style.opacity = "0.25";
+                    playerArea.style.pointerEvents = "none";
+                    timerMsg.innerText = "Aguardando início no lobby...";
+                    
+                    if (amIHost) {
+                        hostStartBtn.style.display = "block";
+                    }
+                } else if (roomStatus === "jogando") {
+                    lobbyPanel.style.display = "none";
+                    if (myStatus === "jogando") {
+                        playerArea.style.opacity = "1";
+                        playerArea.style.pointerEvents = "all";
+                    }
+                    if (!data.timerStart) {
+                        timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
+                    }
+                }
+
                 // Monitoramento do Timer Battle Royale
                 if (data.timerStart && !timerInterval) {
                     iniciarContagemRegressivaBR(data.timerStart);
                 }
 
-                // Renderizar feed de Espectador em Tempo Real
+                // Renderizar feed de Espectador / Lista de Jogadores
                 if (data.jogadores) {
                     renderizarEspectadores(data.jogadores);
                 }
@@ -275,9 +381,30 @@
             window.addEventListener('keydown', handlePhysicalKeyboard);
         }
 
+        // Alternar Estado de Pronto no Lobby
+        function alternarPronto() {
+            isReady = !isReady;
+            const btnReady = document.getElementById('btn-ready-toggle');
+            if (isReady) {
+                btnReady.innerText = "Pronto! (Clique para cancelar)";
+                btnReady.style.background = "#48484a";
+            } else {
+                btnReady.innerText = "Marcar como Pronto";
+                btnReady.style.background = "var(--color-present)";
+            }
+            atualizarMeuStatusNoFirebase();
+        }
+
+        // Host força o início da partida
+        function forçarInicioPartida() {
+            database.ref('salas/' + roomId).update({
+                status: "jogando"
+            });
+        }
+
         // Processar Teclado Físico
         function handlePhysicalKeyboard(e) {
-            if (myStatus !== "jogando") return;
+            if (myStatus !== "jogando" || roomStatus !== "jogando") return;
             const key = e.key.toUpperCase();
             if (key === 'ENTER') pressKey('ENTER');
             else if (key === 'BACKSPACE') pressKey('BACKSPACE');
@@ -286,7 +413,7 @@
 
         // Processar Entrada de Teclas (Físico ou Virtual)
         function pressKey(key) {
-            if (myStatus !== "jogando") return;
+            if (myStatus !== "jogando" || roomStatus !== "jogando") return;
 
             if (key === 'BACKSPACE') {
                 if (currentCol > 0) {
@@ -309,9 +436,17 @@
             }
         }
 
-        // Validar e Colorir Palpite
+        // Validar e Colorir Palpite + Colorir o Teclado
         function verificarPalpite() {
             const palpiteArray = guesses[currentRow];
+            const palavraDigitada = palpiteArray.join("").toUpperCase();
+
+            // --- NOVO: VERIFICAÇÃO COM O DICIONÁRIO ---
+            if (!DICIONARIO.includes(palavraDigitada)) {
+                alert(`⚠️ A palavra "${palavraDigitada}" não existe no dicionário! Escreva uma palavra válida.`);
+                return; // INTERROMPE A VALIDAÇÃO (não gasta a linha e deixa corrigir)
+            }
+
             let corretoContagem = 0;
             let palavraCheck = palavraSecreta.split("");
 
@@ -343,6 +478,29 @@
                 }
             }
 
+            // --- ATUALIZAÇÃO DO TECLADO VIRTUAL DE BAIXO ---
+            for (let i = 0; i < 5; i++) {
+                const letra = palpiteArray[i];
+                const keyElement = document.getElementById(`key-${letra}`);
+                if (keyElement) {
+                    const statusLetra = gridStates[currentRow][i]; // 'c', 'p', ou 'a'
+                    
+                    if (statusLetra === 'c') {
+                        keyElement.classList.remove('present', 'absent');
+                        keyElement.classList.add('correct');
+                    } else if (statusLetra === 'p') {
+                        if (!keyElement.classList.contains('correct')) {
+                            keyElement.classList.remove('absent');
+                            keyElement.classList.add('present');
+                        }
+                    } else if (statusLetra === 'a') {
+                        if (!keyElement.classList.contains('correct') && !keyElement.classList.contains('present')) {
+                            keyElement.classList.add('absent');
+                        }
+                    }
+                }
+            }
+
             atualizarMeuStatusNoFirebase();
 
             // Condição de Vitória
@@ -350,14 +508,13 @@
                 myStatus = "ganhou";
                 atualizarMeuStatusNoFirebase();
                 
-                // Dispara o timer da sala na nuvem caso seja o primeiro a ganhar
                 database.ref('salas/' + roomId + '/timerStart').transaction((currentVal) => {
                     if (currentVal === null) {
                         return firebase.database.ServerValue.TIMESTAMP;
                     }
                 });
                 
-                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Agora assista aos seus oponentes sofrerem contra o tempo.");
+                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Assista ao desespero dos seus oponentes contra o relógio.");
                 return;
             }
 
@@ -374,7 +531,7 @@
             const msgElement = document.getElementById('timer-message');
             const timerElement = document.getElementById('timer-display');
             timerElement.style.display = "block";
-            msgElement.innerText = "ALGUÉM GANHOU! Corra contra o tempo!";
+            msgElement.innerText = "ALGUÉM ACERTOU! Corra contra o tempo!";
 
             timerInterval = setInterval(() => {
                 database.ref('.info/serverTimeOffset').once('value', (snapshot) => {
@@ -382,7 +539,7 @@
                     const estimatedServerTime = Date.now() + offset;
                     const segundosDecorridos = Math.floor((estimatedServerTime - timestampInicioServidor) / 1000);
                     
-                    const tempoFase1 = 120; // 2 minutos
+                    const tempoFase1 = 120; // 2 minutos padrão
                     
                     if (segundosDecorridos < tempoFase1) {
                         const tempoRestante = tempoFase1 - segundosDecorridos;
@@ -398,7 +555,7 @@
                         if (maxRowsAllowed < 0) maxRowsAllowed = 0;
 
                         timerElement.innerText = "TEMPO ESGOTADO!";
-                        msgElement.innerText = `Linhas deletadas! Máximo permitido: ${maxRowsAllowed}`;
+                        msgElement.innerText = `Linhas destruídas! Máximo permitido: ${maxRowsAllowed}`;
 
                         for (let r = 0; r < 6; r++) {
                             const row = document.getElementById(`row-${r}`);
@@ -408,7 +565,7 @@
                         }
 
                         if (currentRow >= maxRowsAllowed && myStatus === "jogando") {
-                            marcarComoDerrota("O tempo acabou e suas linhas foram destruídas!");
+                            marcarComoDerrota("O tempo expirou e suas linhas foram deletadas!");
                         }
                     }
                 });
@@ -418,7 +575,7 @@
         function marcarComoDerrota(motivo) {
             myStatus = "perdeu";
             atualizarMeuStatusNoFirebase();
-            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}. Você agora entrou no Modo Espectador.`);
+            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}. Você entrou no Modo Espectador.`);
             document.getElementById('game-keyboard').style.opacity = "0.3";
             document.getElementById('game-keyboard').style.pointerEvents = "none";
         }
@@ -428,7 +585,8 @@
             database.ref('salas/' + roomId + '/jogadores/' + username).set({
                 status: myStatus,
                 linhaAtual: currentRow,
-                grid: gridStates
+                grid: gridStates,
+                ready: isReady
             });
         }
 
@@ -447,8 +605,12 @@
                 header.className = 'player-card-header';
                 
                 let statusLabel = "📝 Jogando";
-                if (pData.status === "ganhou") statusLabel = "👑 Venceu!";
-                if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
+                if (roomStatus === "lobby") {
+                    statusLabel = pData.ready ? "✅ Pronto" : "⏳ No Lobby";
+                } else {
+                    if (pData.status === "ganhou") statusLabel = "👑 Venceu!";
+                    if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
+                }
 
                 header.innerHTML = `<span>${player}</span><span>${statusLabel}</span>`;
                 card.appendChild(header);
@@ -476,9 +638,9 @@
             }
         }
 
-        function mostrarOverlay(titulo, mensagem) {
+        function mostrarOverlay(titulo, message) {
             document.getElementById('overlay-title').innerText = titulo;
-            document.getElementById('overlay-body').innerText = mensagem;
+            document.getElementById('overlay-body').innerText = message;
             document.getElementById('game-overlay').style.display = 'flex';
         }
 
