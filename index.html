@@ -16,10 +16,11 @@
             --color-border: #3a3a3c;
             --color-text: #ffffff;
             --color-disabled: #222224;
+            --color-public: #2f6ced;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--color-bg); color: var(--color-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-x: hidden; }
+        body { background-color: var(--color-bg); color: var(--color-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         
         .screen { display: none; width: 100%; max-width: 900px; text-align: center; }
         .screen.active { display: block; }
@@ -28,15 +29,19 @@
         p { color: #86868b; margin-bottom: 20px; }
 
         /* Setup Screen */
-        .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 460px; margin: 40px auto; }
-        .input-group { display: flex; gap: 10px; margin: 10px 0; }
+        .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 400px; margin: 30px auto 15px auto; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: #2c2c2e; border: 1px solid var(--color-border); color: white; border-radius: 6px; font-size: 1rem; text-align: center; }
-        .input-group input { margin: 0; }
         button { width: 100%; padding: 12px; background: var(--color-correct); border: none; color: white; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
         button:hover { background: #43723f; }
+        .btn-public { background: var(--color-public); }
+        .btn-public:hover { background: #2250b5; }
         .btn-secondary { background: #48484a; }
         .btn-secondary:hover { background: #3a3a3c; }
-        .divider { margin: 20px 0; color: #86868b; font-size: 0.9rem; }
+        .divider { margin: 20px 0 10px 0; color: #86868b; font-size: 0.8rem; font-weight: bold; letter-spacing: 1px; }
+
+        /* Footer Customizado */
+        .setup-footer { margin-top: 20px; font-size: 0.8rem; color: #636366; text-align: center; line-height: 1.4; }
+        .setup-footer strong { color: #aeaeae; font-weight: 600; }
 
         /* Game Screen Layout */
         .game-layout { display: flex; flex-direction: row; gap: 30px; justify-content: center; align-items: flex-start; margin-top: 20px; flex-wrap: wrap; }
@@ -55,9 +60,9 @@
         .btn-start { background: var(--color-correct); font-size: 1.1rem; }
 
         /* Wordle Grid */
-        .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; transition: transform 0.1s ease; }
+        .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px; margin-bottom: 20px; }
         .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; transition: all 0.5s ease; }
-        .grid-row.eliminated { opacity: 0.15; transform: scale(0.95); pointer-events: none; background: #ff453a22; }
+        .grid-row.eliminated { opacity: 0.2; transform: scale(0.95); pointer-events: none; background: #ff453a22; }
         .cell { aspect-ratio: 1; border: 2px solid var(--color-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; background: var(--color-grid-bg); }
         .cell.correct { background-color: var(--color-correct); border-color: var(--color-correct); }
         .cell.present { background-color: var(--color-present); border-color: var(--color-present); }
@@ -78,16 +83,12 @@
         .player-card { background: #2c2c2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 5px solid #86868b; text-align: left; }
         .player-card.ganhou { border-left-color: var(--color-correct); }
         .player-card.perdeu { border-left-color: #ff453a; }
-        .player-card-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+        .player-card-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
         
-        /* Mini Grid for Spectating (Aumentado para exibir letras) */
-        .mini-grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 2px; width: 110px; margin-top: 5px; }
-        .mini-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
-        .mini-cell { 
-            width: 20px; height: 20px; border: 1px solid #444; background: #1a1a1c; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: #ffffff;
-        }
+        /* Mini Grid for Spectating */
+        .mini-grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 3px; width: 115px; margin-top: 8px; }
+        .mini-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+        .mini-cell { width: 20px; height: 20px; border: 1px solid #444; background: #1a1a1c; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; text-transform: uppercase; }
         .mini-cell.c { background: var(--color-correct); border-color: var(--color-correct); }
         .mini-cell.p { background: var(--color-present); border-color: var(--color-present); }
         .mini-cell.a { background: var(--color-absent); border-color: var(--color-absent); }
@@ -96,82 +97,31 @@
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
         .overlay-content { background: #1c1c1e; padding: 40px; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 400px; }
         .overlay h2 { font-size: 2rem; margin-bottom: 10px; }
-
-        /* Animações Visuais */
-        .match-start-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 200; justify-content: center; align-items: center;
-        }
-        .match-start-content {
-            font-size: 3.5rem; font-weight: bold; color: var(--color-correct); text-transform: uppercase;
-            animation: popAndSpin 1.5s ease-out forwards; text-shadow: 0 0 25px rgba(83,141,78,0.7); text-align: center;
-        }
-        @keyframes popAndSpin {
-            0% { transform: scale(0) rotate(-25deg); opacity: 0; }
-            50% { transform: scale(1.2) rotate(15deg); opacity: 1; }
-            100% { transform: scale(1) rotate(0deg); opacity: 0; }
-        }
-
-        .bomb-flash-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 69, 58, 0.4); z-index: 150; justify-content: center; align-items: center;
-            font-size: 9rem; pointer-events: none;
-        }
-        .bomb-active { display: flex; animation: bombExplode 0.8s ease-out forwards; }
-        @keyframes bombExplode {
-            0% { opacity: 0; transform: scale(0.4); }
-            30% { opacity: 1; transform: scale(1.5); }
-            100% { opacity: 0; transform: scale(2); }
-        }
-        @keyframes shake {
-            0%, 100% { transform: translate(0, 0); }
-            10%, 30%, 50%, 70%, 90% { transform: translate(-6px, 0); }
-            20%, 40%, 60%, 80% { transform: translate(6px, 0); }
-        }
-
-        .grand-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 250; justify-content: center; align-items: center; pointer-events: none;
-        }
-        .grand-overlay.victory { background: rgba(83, 141, 78, 0.9); }
-        .grand-overlay.death { background: rgba(20, 20, 22, 0.95); }
-        .grand-content {
-            font-size: 5rem; font-weight: bold; text-align: center; color: white;
-            animation: grandPop 3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; line-height: 1.3;
-        }
-        @keyframes grandPop {
-            0% { transform: scale(0.3); opacity: 0; }
-            15% { transform: scale(1.1); opacity: 1; }
-            25% { transform: scale(1); opacity: 1; }
-            85% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.5); opacity: 0; }
-        }
     </style>
 </head>
 <body>
-
-    <div id="start-match-overlay" class="match-start-overlay">
-        <div class="match-start-content">PARTIDA INICIADA! 🚀<br><span style="font-size: 1.5rem; color: #fff;">VALENDO!</span></div>
-    </div>
-    <div id="bomb-flash" class="bomb-flash-overlay">💣</div>
-    <div id="grand-victory-overlay" class="grand-overlay victory"><div class="grand-content">🏆<br>VITÓRIA!</div></div>
-    <div id="grand-death-overlay" class="grand-overlay death"><div class="grand-content">💀<br>ELIMINADO</div></div>
 
     <div id="screen-setup" class="screen active">
         <h1>TERMO BATTLE ROYALE 👑</h1>
         <p>O último sobrevivente que adivinhar a palavra vence!</p>
         
         <div class="auth-container">
-            <div class="input-group">
-                <input type="text" id="input-avatar" placeholder="URL da Foto de Perfil 🖼️">
-                <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12">
-            </div>
-            <div class="divider">---</div>
-            <button onclick="criarNovaSala()">Criar Nova Sala</button>
-            <div class="divider">OU</div>
+            <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12">
+            
+            <div class="divider">MODO PÚBLICO</div>
+            <button onclick="entrarSalaPublica()" class="btn-public">Jogar em Sala Pública 🌍</button>
+            
+            <div class="divider">MODO PRIVADO</div>
+            <button onclick="criarNovaSala()">Criar Sala Privada 🔒</button>
+            <div style="margin-top: 15px;"></div>
             <input type="text" id="input-room-id" placeholder="Código da Sala (Ex: 4812)">
-            <button onclick="entrarNaSala()" class="btn-secondary">Entrar na Sala</button>
+            <button onclick="entrarNaSala()" class="btn-secondary">Entrar via Código</button>
         </div>
+
+        <footer class="setup-footer">
+            Desenvolvido com ❤️ por <strong>Kayronn Monteiro</strong><br>
+            com o suporte inteligente da IA do <strong>Google Gemini</strong> ✨
+        </footer>
     </div>
 
     <div id="screen-game" class="screen">
@@ -231,7 +181,7 @@
             </div>
 
             <div class="spectator-panel">
-                <h2>Live Jogadores 👁️</h2>
+                <h2>Live Jogadores (Espectador) 👁️</h2>
                 <div id="spectator-list"></div>
             </div>
         </div>
@@ -246,6 +196,7 @@
     </div>
 
     <script>
+        // CONFIGURAÇÕES DO FIREBASE INTEGRADAS
         const firebaseConfig = {
             apiKey: "AIzaSyBJZ89pk9LNXGM-SdOdl5SmymqJJ8cMPRU",
             authDomain: "termo-battle-royale.firebaseapp.com",
@@ -260,6 +211,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        // DICIONÁRIO DE PALAVRAS
         const DICIONARIO = [
             "POBRE", "FILMA", "TERMO", "JOGOS", "NUVEM", "TEXTO", "LETRA", "BRUTA", "PLANO", "PODER",
             "SAGAZ", "PORTA", "CORPO", "FESTA", "GRUPO", "TEMPO", "AMIGO", "CARRO", "CASAL", "CHAVE",
@@ -270,80 +222,7 @@
             "CRIAR", "FAZER", "MANHA", "TARDE", "PONTE", "TERRA", "DADOS", "GATOS", "JOGAR", "NOBRE",
             "NUNCA", "FACIL", "VIRUS", "AUDIO", "MIDIA", "TAXAS", "TOTAL", "LOCAL", "GERAL", "FINAL",
             "FISCAL", "MORAL", "RURAL", "LEGAL", "GRAVE", "BRISA", "CLIMA", "SALDO", "TURMA", "POUCO",
-            "MUITO", "CHEIO", "VERDE", "REINO", "ALUNO", "PRETO", "FORNO", "CUPOM", "PLACA", "FOGAO",
-            "VALE", "VAGAO", "CHAPA", "FAROL", "BLOCO", "SUTIL", "REVER", "PENSAR", "CAFE", "LEITE",
-            "ARROZ", "MANGA", "COPO", "PRATO", "GARFO", "FACAO", "FORCA", "CORRE", "FAZIA", "VERSO",
-            "PROVA", "MARCA", "SIGLA", "TEMAS", "VERBO", "TERCO", "PAUTA", "TESTE", "FILME", "PRESO",
-            "SOLTO", "LIVRES", "DANCA", "CANTA", "CORRA", "FALOU", "OUVIU", "ESTOU", "ROUPA", "CREME",
-            "BATER", "BEBER", "FUGIR", "SONHO", "TEMOR", "FUNDO", "LINDO", "CEGO", "SURDO", "BRAVO",
-            "AMPLO", "PLENO", "MUTUO", "CAUSA", "ARCO", "AUTOR", "ATRAS", "BAIXO", "BARCO", "BRIGA", 
-            "BUSCA", "BRUXA", "CALMA", "CAMPO", "CHEFÈ", "CINTO", "CIUME", "CLARO", "COBRE", "CONTA", 
-            "COROA", "CRIME", "CUSTO", "DENTE", "DISCO", "DOBRO", "DRAGA", "DUQUE", "EXAME", "FAIXA", 
-            "FARSA", "FAUNA", "FEIRA", "FERRO", "FIBRA", "FIRME", "FISCO", "FLAMA", "FLORA", "FLUXO",
-            "FOLHA", "FONTE", "FORMA", "FORTE", "FOSSO", "FRADE", "FRASE", "FRUTO", "FUMAR", "FUNDO",
-            "FURIA", "FUSAO", "GASTO", "GEADA", "GESSO", "GLOBO", "GRADE", "GRAVE", "GRAXA", "GRILO", 
-            "GRUTA", "HASTE", "HORTA", "HOTEL", "HUMOR", "IDADE", "IDOSO", "IGUAL", "ILHA", "IMPAR", 
-            "INDIO", "INFRA", "ITENS", "JARRA", "JATO", "JEITO", "JOIA", "JUROS", "JUSTO", "LABIO", 
-            "LAGOA", "LANCE", "LAPIS", "LARVA", "LASER", "LATEX", "LAUDO", "LEITE", "LEITO", "LEME", 
-            "LENTE", "LEQUE", "LESTE", "LIBRA", "LIDER", "LIMPO", "LINCE", "LINDO", "LIVRO", "LIVRE", 
-            "LOUSA", "LUCRO", "LUGAR", "LUPUS", "LUVA", "LUZES", "MACIO", "MAGIA", "MAGMA", "MAGRO", 
-            "MAIOR", "MALHA", "MANCO", "MANGA", "MANHA", "MANIA", "MANTA", "MARCO", "MASSA", "MATIZ", 
-            "MEIGO", "MENOR", "MENOS", "MENTA", "MESES", "METAL", "METRO", "MIADO", "MICRA", "MICRO", 
-            "MILHO", "MINAS", "MIOLO", "MISTO", "MITOS", "MOCO", "MOEDA", "MOER", "MOFA", "MOFO", 
-            "MOLAR", "MOLDE", "MOLHO", "MONGE", "MONTE", "MORAL", "MORTE", "MORRO", "MOSCA", "MOTOR", 
-            "MUDAS", "MUDO", "MUITO", "MULTA", "MUNDO", "MURO", "MUSEU", "MUSGO", "MUTUA", "NACAO", 
-            "NAVIO", "NEVOA", "NINHO", "NIVEL", "NOBRE", "NOITE", "NOIVA", "NOIVO", "NORTE", "NOSSO", 
-            "NOTAS", "NOVA", "NUNCA", "NUVEM", "OASIS", "OBTER", "OESTE", "OLHAR", "ONDA", "ONTEM", 
-            "OPCAO", "ORGAO", "OURO", "OUTRO", "OUVIR", "OXIDO", "PACTO", "PADRE", "PAGAR", "PALHA", 
-            "PALMA", "PAPEL", "PARAR", "PARDO", "PAREO", "PARTE", "PARTO", "PASSO", "PASTA", "PASTO", 
-            "PATIO", "PAUTA", "PAVIO", "PEDAL", "PEDRA", "PEDRO", "PEIXE", "PELES", "PELOS", "PENAS", 
-            "PENTE", "PERDA", "PERTO", "PERU", "PESAR", "PESO", "PESTE", "PIANO", "PIADA", "PILHA", 
-            "PINGO", "PINHO", "PINOS", "PINTA", "PINTO", "PIRES", "PISO", "PISTA", "PIZZA", "PLACA", 
-            "PLANO", "PLENA", "PLENO", "PLUMA", "POBRE", "POCO", "PODER", "POEMA", "POETA", "POLPA", 
-            "POLVO", "POMAR", "POMBA", "POMBO", "PONTA", "PONTO", "PORCO", "PORTA", "PORTO", "POSSE", 
-            "POSTE", "POSTO", "POTES", "POUCO", "POUSO", "POVO", "PRADO", "PRAGA", "PRATO", "PRAZO", 
-            "PRECO", "PREGO", "PRESA", "PRESO", "PRETO", "PRIMO", "PRIOR", "PROSA", "PROVA", "PUDIM", 
-            "PULGA", "PULO", "PULSO", "PUMA", "PUNHO", "PURA", "PURO", "PUXAR", "QUASE", "QUEDA", 
-            "QUERO", "QUILO", "QUINA", "QUOTA", "RADAR", "RADIO", "RAIO", "RAIVA", "RAIZ", "RAMAL", 
-            "RAMOS", "RAMPA", "RANGO", "RAPAZ", "RARO", "RASGO", "RAZAO", "REDE", "REDUZ", "REFAZ", 
-            "REFEM", "REGRA", "REGUA", "REINO", "RELES", "REMO", "RENDA", "RENTE", "REPOR", "RESTO", 
-            "RETRO", "REVER", "REVIR", "REZAR", "RIFA", "RIFLE", "RITMO", "RIVAL", "ROCHA", "RODA", 
-            "RODO", "ROGAR", "ROLO", "ROMBO", "ROMPA", "RONCO", "RONDA", "ROUPA", "ROXO", "RUBRO", 
-            "RUDE", "RUGBY", "RUIDO", "RUINA", "RURAL", "RUSSO", "SABER", "SABIO", "SABOR", "SACAR", 
-            "SACO", "SACRA", "SACRO", "SAFRA", "SAGAZ", "SAIDA", "SALDO", "SALMO", "SALSA", "SALSO", 
-            "SALVA", "SALVO", "SAMBA", "SANTO", "SAPO", "SAQUE", "SARNA", "SARRO", "SAUDE", "SAUNA", 
-            "SECA", "SECO", "SEDE", "SEDEX", "SEIO", "SEITA", "SEIXO", "SELO", "SELVA", "SENDO", 
-            "SENHA", "SENSU", "SENTA", "SENTI", "SENTO", "SERAO", "SEREI", "SERIA", "SERIE", "SERIO", 
-            "SERRA", "SERRO", "SERVA", "SERVO", "SEXTA", "SEXTO", "SIGLA", "SIGMA", "SIGNO", "SILVA", 
-            "SILVO", "SIMIO", "SINAL", "SINO", "SINTA", "SINTO", "SITIO", "SITUA", "SKATE", "SLIDE", 
-            "SOADO", "SOBRA", "SOBRE", "SOCIO", "SODA", "SOFAS", "SOGRA", "SOGRO", "SOLA", "SOLAR", 
-            "SOLDA", "SOLDO", "SOLO", "SOLTA", "SOLTO", "SOMAR", "SONDA", "SONHO", "SONO", "SOPRO", 
-            "SORDO", "SORO", "SORTE", "SOUZA", "SUADO", "SUBIR", "SUCO", "SUDOR", "SUECO", "SUGAR", 
-            "SUICO", "SUINO", "SUITE", "SUJA", "SUJO", "SULCO", "SUMIR", "SUMO", "SUPER", "SUPOR", 
-            "SURDA", "SURDO", "SURFE", "SURTO", "SUSTO", "SUTIL", "SUTRA", "TABUA", "TACHO", "TACO", 
-            "TALCO", "TALHA", "TALHO", "TALO", "TAMPA", "TAMPO", "TANGA", "TANGO", "TANTO", "TAPAR", 
-            "TARDE", "TARJA", "TAXAS", "TEATRO", "TECLA", "TECO", "TEIA", "TEIMA", "TEIXO", "TELA", 
-            "TELHA", "TELHO", "TEMAS", "TEMER", "TEMOR", "TEMPO", "TENAZ", "TENDO", "TENIS", "TENOR", 
-            "TENSA", "TENSO", "TENTA", "TENTO", "TERCO", "TERRA", "TESAO", "TESE", "TESTA", "TESTE", 
-            "TETO", "TEXAS", "TEXTO", "TIARA", "TIBIA", "TIGRE", "TINTO", "TIPOS", "TIRAR", "TIRO", 
-            "TOCA", "TOCAR", "TOCHA", "TOGA", "TOMAR", "TOMBO", "TOMO", "TONEL", "TONER", "TONTO", 
-            "TOPAR", "TOPO", "TOQUE", "TORAX", "TORCE", "TORRE", "TORTO", "TOSCO", "TOSSE", "TOTAL", 
-            "TOURO", "TRACO", "TRAJE", "TRAMA", "TRAPO", "TRATA", "TRATO", "TRAVA", "TRAVO", "TREM", 
-            "TRENA", "TRENS", "TREVO", "TREZE", "TRIBO", "TRICO", "TRIGO", "TRINA", "TRINO", "TRIO", 
-            "TRIPA", "TRIST", "TRONO", "TROPA", "TROVA", "TROVO", "TRUCO", "TRUFA", "TRUTA", "TUBO", 
-            "TUDO", "TUFO", "TUMBA", "TUMOR", "TUNEL", "TURBA", "TURBO", "TURCO", "TURMA", "TURNO", 
-            "TUTOR", "UNICO", "UNIDA", "UNIDO", "URANO", "URSO", "URUBU", "USADO", "USINA", "UTERO", 
-            "VACUO", "VADIO", "VAGAO", "VAGOS", "VAIA", "VALE", "VALER", "VALOR", "VALVA", "VAPOR", 
-            "VARA", "VARAL", "VARIA", "VARIO", "VASCO", "VASO", "VASTO", "VAZIO", "VEADO", "VEGAS", 
-            "VEIA", "VELHA", "VELHO", "VELOZ", "VENCE", "VENDA", "VENDO", "VENIA", "VENHO", "VENTO", 
-            "VENUS", "VERBA", "VERBO", "VERDE", "VERGA", "VERME", "VERSO", "VERTE", "VERVE", "VESTE", 
-            "VETO", "VETOR", "VEZES", "VIAS", "VIBRA", "VICIO", "VIDA", "VIDEO", "VIDRO", "VIELA", 
-            "VIGIA", "VIGOR", "VILAO", "VIMOS", "VINHO", "VINTE", "VIOLA", "VIRAL", "VIRAR", "VIRIL", 
-            "VIRUS", "VISAO", "VISAR", "VISCO", "VISO", "VISTA", "VISTO", "VITAL", "VITOR", "VIVAZ", 
-            "VIVER", "VIVO", "VOCAL", "VODKA", "VOGAL", "VOGAR", "VOLEI", "VOLTA", "VOLTO", "VOSSO", 
-            "VOTAR", "VOTO", "VOVO", "VULGO", "VULTO", "VULVA", "XADRE", "XARA", "XEROX", "XINGA", 
-            "XISTO", "YOGA", "ZEBRA", "ZELAR", "ZELO", "ZERAR", "ZERO", "ZINCO", "ZOMBA", "ZONA", 
-            "ZONZO", "ZOOM", "ZORRA", "ZORRO", "ZUMBI"
+            "MUITO", "CHEIO", "VERDE", "REINO", "ALUNO", "PRETO", "FORNO", "CUPOM", "PLACA", "FOGAO"
         ];
 
         let username = "";
@@ -357,18 +236,18 @@
         let amIHost = false;
         let roomStatus = "lobby";
         let timerInterval = null;
-        let localRoomStatus = "lobby";
 
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('termo_br_username');
-            if (savedName) document.getElementById('input-username').value = savedName;
-            const savedAvatar = localStorage.getItem('termo_br_avatar');
-            if (savedAvatar) document.getElementById('input-avatar').value = savedAvatar;
+            if (savedName) {
+                document.getElementById('input-username').value = savedName;
+            }
         });
 
+        // Inicializar Grade do Tabuleiro Visual
         const board = document.getElementById('board-grid');
         for (let r = 0; r < 6; r++) {
             const rowDiv = document.createElement('div');
@@ -389,18 +268,56 @@
                 const copyBtn = document.getElementById('btn-copy-code');
                 copyBtn.innerText = "Copiado! ✅";
                 setTimeout(() => { copyBtn.innerText = "Copiar Código"; }, 2000);
-            }).catch(() => {
-                alert("Código da sala: " + roomId);
             });
         }
 
+        // LÓGICA DE SALA PÚBLICA (Matchmaking automático)
+        function entrarSalaPublica() {
+            username = document.getElementById('input-username').value.trim();
+            if (!username) return alert("Insira um nome válido!");
+            localStorage.setItem('termo_br_username', username);
+
+            // Varre o banco procurando uma sala pública que ainda esteja no lobby
+            database.ref('salas').once('value', (snapshot) => {
+                let salaDisponivelId = null;
+                if (snapshot.exists()) {
+                    const salas = snapshot.val();
+                    for (let id in salas) {
+                        if (salas[id].tipo === "publica" && salas[id].status === "lobby") {
+                            salaDisponivelId = id;
+                            break;
+                        }
+                    }
+                }
+
+                if (salaDisponivelId) {
+                    // Se achou uma vaga, conecta nela
+                    roomId = salaDisponivelId;
+                    entrarNaSalaComId(roomId);
+                } else {
+                    // Se não achou, cria uma nova sala pública automática
+                    roomId = Math.floor(1000 + Math.random() * 9000).toString();
+                    const palavraEscolhida = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
+
+                    database.ref('salas/' + roomId).set({
+                        palavra: palavraEscolhida,
+                        status: "lobby",
+                        tipo: "publica",
+                        host: username,
+                        timerStart: null
+                    }).then(() => {
+                        amIHost = true;
+                        entrarNaSalaComId(roomId);
+                    });
+                }
+            });
+        }
+
+        // Criar Sala Privada
         function criarNovaSala() {
             username = document.getElementById('input-username').value.trim();
-            const avatarUrl = document.getElementById('input-avatar').value.trim();
             if (!username) return alert("Insira um nome válido!");
-            
             localStorage.setItem('termo_br_username', username);
-            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
             const palavraEscolhida = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
@@ -408,6 +325,7 @@
             database.ref('salas/' + roomId).set({
                 palavra: palavraEscolhida,
                 status: "lobby",
+                tipo: "privada",
                 host: username,
                 timerStart: null
             }).then(() => {
@@ -416,26 +334,22 @@
             });
         }
 
+        // Entrar em Sala por Código
         function entrarNaSala() {
             username = document.getElementById('input-username').value.trim();
-            const avatarUrl = document.getElementById('input-avatar').value.trim();
             roomId = document.getElementById('input-room-id').value.trim();
-            
             if (!username || !roomId) return alert("Preencha o nome e o código da sala!");
             
             localStorage.setItem('termo_br_username', username);
-            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             database.ref('salas/' + roomId).once('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    const salaData = snapshot.val();
-                    if (salaData.status === "jogando") {
-                        alert("A partida nessa sala já começou!");
-                        return;
+                    if (snapshot.val().status === "jogando") {
+                        return alert("A partida nessa sala já começou!");
                     }
                     entrarNaSalaComId(roomId);
                 } else {
-                    alert("Sala não encontrada!");
+                    alert("Sala privada não encontrada!");
                 }
             });
         }
@@ -443,7 +357,6 @@
         function entrarNaSalaComId(id) {
             document.getElementById('screen-setup').classList.remove('active');
             document.getElementById('screen-game').classList.add('active');
-            document.getElementById('room-title').innerHTML = `SALA: <span style="color:var(--color-present)">${id}</span> <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar</button>`;
 
             atualizarMeuStatusNoFirebase();
 
@@ -453,20 +366,11 @@
 
                 palavraSecreta = data.palavra.toUpperCase();
                 roomStatus = data.status;
+                const modalidade = data.tipo === "publica" ? "PÚBLICA 🌍" : "PRIVADA 🔒";
 
-                if (data.host === username) {
-                    amIHost = true;
-                }
+                document.getElementById('room-title').innerHTML = `SALA ${modalidade}: <span style="color:var(--color-present)">${id}</span> <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar Código</button>`;
 
-                if (localRoomStatus === "lobby" && roomStatus === "jogando") {
-                    triggerStartAnimation();
-                }
-
-                if (localRoomStatus === "jogando" && roomStatus === "lobby") {
-                    resetarEstadoLocalJogo();
-                }
-
-                localRoomStatus = roomStatus;
+                if (data.host === username) amIHost = true;
 
                 const lobbyPanel = document.getElementById('lobby-panel');
                 const playerArea = document.getElementById('player-area');
@@ -478,67 +382,19 @@
                     playerArea.style.opacity = "0.25";
                     playerArea.style.pointerEvents = "none";
                     timerMsg.innerText = "Aguardando início no lobby...";
-                    document.getElementById('btn-ready-toggle').style.display = "block";
                     
-                    if (amIHost) {
-                        hostStartBtn.style.display = "block";
-                        hostStartBtn.innerText = "Iniciar Jogo 🚀";
-                        hostStartBtn.onclick = forçarInicioPartida;
-                    }
-
-                    if (data.jogadores) {
-                        let totalP = 0;
-                        let readyP = 0;
-                        for (let p in data.jogadores) {
-                            totalP++;
-                            if (data.jogadores[p].ready) readyP++;
-                        }
-                        if (totalP > 0 && readyP === totalP && amIHost) {
-                            forçarInicioPartida();
-                        }
-                    }
-
+                    if (amIHost) hostStartBtn.style.display = "block";
                 } else if (roomStatus === "jogando") {
                     lobbyPanel.style.display = "none";
                     if (myStatus === "jogando") {
                         playerArea.style.opacity = "1";
                         playerArea.style.pointerEvents = "all";
                     }
-                    if (!data.timerStart) {
-                        timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
-                    }
-
-                    if (data.jogadores) {
-                        let totalP = 0;
-                        let finishedP = 0;
-                        for (let p in data.jogadores) {
-                            totalP++;
-                            if (data.jogadores[p].status === "ganhou" || data.jogadores[p].status === "perdeu") {
-                                finishedP++;
-                            }
-                        }
-                        if (totalP > 0 && finishedP === totalP) {
-                            lobbyPanel.style.display = "block";
-                            document.getElementById('btn-ready-toggle').style.display = "none";
-                            if (amIHost) {
-                                hostStartBtn.style.display = "block";
-                                hostStartBtn.innerText = "Preparar Próxima Partida 🔄";
-                                hostStartBtn.onclick = prepararProximaPartida;
-                                document.getElementById('lobby-status-desc').innerText = "Fim de jogo! Clique acima para reiniciar a sala.";
-                            } else {
-                                document.getElementById('lobby-status-desc').innerText = "Fim de jogo! Aguardando o Host preparar a próxima rodada...";
-                            }
-                        }
-                    }
+                    if (!data.timerStart) timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
                 }
 
-                if (data.timerStart) {
-                    iniciarContagemRegressivaBR(data.timerStart);
-                }
-
-                if (data.jogadores) {
-                    renderizarEspectadores(data.jogadores);
-                }
+                if (data.timerStart && !timerInterval) iniciarContagemRegressivaBR(data.timerStart);
+                if (data.jogadores) renderizarEspectadores(data.jogadores);
             });
 
             window.addEventListener('keydown', handlePhysicalKeyboard);
@@ -558,69 +414,7 @@
         }
 
         function forçarInicioPartida() {
-            database.ref('salas/' + roomId).update({
-                status: "jogando"
-            });
-        }
-
-        function prepararProximaPartida() {
-            const novaPalavra = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
-            database.ref('salas/' + roomId + '/jogadores').once('value', (snapshot) => {
-                const jogadores = snapshot.val();
-                let updates = {};
-                for (let p in jogadores) {
-                    updates[`salas/${roomId}/jogadores/${p}/status`] = "jogando";
-                    updates[`salas/${roomId}/jogadores/${p}/linhaAtual`] = 0;
-                    updates[`salas/${roomId}/jogadores/${p}/ready`] = false;
-                    updates[`salas/${roomId}/jogadores/${p}/grid`] = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
-                    updates[`salas/${roomId}/jogadores/${p}/palpites`] = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
-                }
-                updates[`salas/${roomId}/status`] = "lobby";
-                updates[`salas/${roomId}/palavra`] = novaPalavra;
-                updates[`salas/${roomId}/timerStart`] = null;
-                
-                database.ref().update(updates).then(() => {
-                    resetarEstadoLocalJogo();
-                });
-            });
-        }
-
-        function resetarEstadoLocalJogo() {
-            currentRow = 0;
-            currentCol = 0;
-            maxRowsAllowed = 6;
-            myStatus = "jogando";
-            isReady = false;
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-            guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
-            gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
-            
-            for (let r = 0; r < 6; r++) {
-                const rowDiv = document.getElementById(`row-${r}`);
-                rowDiv.className = 'grid-row';
-                for (let c = 0; c < 5; c++) {
-                    const cell = document.getElementById(`cell-${r}-${c}`);
-                    cell.innerText = "";
-                    cell.className = 'cell';
-                }
-            }
-            
-            document.querySelectorAll('.key').forEach(k => {
-                k.classList.remove('correct', 'present', 'absent');
-            });
-            document.getElementById('game-keyboard').style.opacity = "1";
-            document.getElementById('game-keyboard').style.pointerEvents = "all";
-            
-            const btnReady = document.getElementById('btn-ready-toggle');
-            btnReady.innerText = "Marcar como Pronto";
-            btnReady.style.background = "var(--color-present)";
-            
-            document.getElementById('timer-display').style.display = "none";
-            document.getElementById('timer-message').innerText = "Aguardando a partida iniciar...";
-            fecharOverlay();
+            database.ref('salas/' + roomId).update({ status: "jogando" });
         }
 
         function handlePhysicalKeyboard(e) {
@@ -642,11 +436,8 @@
                 }
             } 
             else if (key === 'ENTER') {
-                if (currentCol === 5) {
-                    verificarPalpite();
-                } else {
-                    alert("A palavra deve ter 5 letras!");
-                }
+                if (currentCol === 5) verificarPalpite();
+                else alert("A palavra deve ter 5 letras!");
             } 
             else if (guesses[currentRow] && currentCol < 5) {
                 guesses[currentRow][currentCol] = key;
@@ -658,11 +449,6 @@
         function verificarPalpite() {
             const palpiteArray = guesses[currentRow];
             const palavraDigitada = palpiteArray.join("").toUpperCase();
-
-            if (!DICIONARIO.includes(palavraDigitada)) {
-                alert(`⚠️ A palavra "${palavraDigitada}" não existe no dicionário! Escreva uma palavra válida.`);
-                return; 
-            }
 
             let corretoContagem = 0;
             let palavraCheck = palavraSecreta.split("");
@@ -679,7 +465,6 @@
 
             for (let i = 0; i < 5; i++) {
                 if (gridStates[currentRow][i] === 'c') continue;
-                
                 const cell = document.getElementById(`cell-${currentRow}-${i}`);
                 const indexNaPalavra = palavraCheck.indexOf(palpiteArray[i]);
                 
@@ -719,15 +504,10 @@
             if (corretoContagem === 5) {
                 myStatus = "ganhou";
                 atualizarMeuStatusNoFirebase();
-                
                 database.ref('salas/' + roomId + '/timerStart').transaction((currentVal) => {
-                    if (currentVal === null) {
-                        return firebase.database.ServerValue.TIMESTAMP;
-                    }
+                    if (currentVal === null) return firebase.database.ServerValue.TIMESTAMP;
                 });
-                
-                triggerGrandVictory();
-                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Assista ao desespero dos seus oponentes contra o relógio.");
+                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra!");
                 return;
             }
 
@@ -740,7 +520,6 @@
         }
 
         function iniciarContagemRegressivaBR(timestampInicioServidor) {
-            if (timerInterval) return;
             const msgElement = document.getElementById('timer-message');
             const timerElement = document.getElementById('timer-display');
             timerElement.style.display = "block";
@@ -751,8 +530,7 @@
                     const offset = snapshot.val() || 0;
                     const estimatedServerTime = Date.now() + offset;
                     const segundosDecorridos = Math.floor((estimatedServerTime - timestampInicioServidor) / 1000);
-                    
-                    const tempoFase1 = 120; 
+                    const tempoFase1 = 120;
                     
                     if (segundosDecorridos < tempoFase1) {
                         const tempoRestante = tempoFase1 - segundosDecorridos;
@@ -763,28 +541,20 @@
                     else {
                         const tempoExtra = segundosDecorridos - tempoFase1;
                         const linhasApagadas = Math.floor(tempoExtra / 15) + 1;
-                        const proximaLinhaEm = 15 - (tempoExtra % 15);
                         
-                        const antigaMaxRows = maxRowsAllowed;
                         maxRowsAllowed = 6 - linhasApagadas;
                         if (maxRowsAllowed < 0) maxRowsAllowed = 0;
 
-                        timerElement.innerText = `💣 PRÓXIMA ELIMINAÇÃO: ${proximaLinhaEm}s`;
-                        msgElement.innerText = `Linhas destruídas: ${linhasApagadas} | Máximo de linhas permitido: ${maxRowsAllowed}`;
-
-                        if (maxRowsAllowed < antigaMaxRows && myStatus === "jogando") {
-                            triggerBombFlash();
-                        }
+                        timerElement.innerText = "TEMPO ESGOTADO!";
+                        msgElement.innerText = `Linhas destruídas! Máximo permitido: ${maxRowsAllowed}`;
 
                         for (let r = 0; r < 6; r++) {
                             const row = document.getElementById(`row-${r}`);
-                            if (r >= maxRowsAllowed) {
-                                row.classList.add('eliminated');
-                            }
+                            if (r >= maxRowsAllowed) row.classList.add('eliminated');
                         }
 
                         if (currentRow >= maxRowsAllowed && myStatus === "jogando") {
-                            marcarComoDerrota("O tempo expirou e suas linhas foram destruídas!");
+                            marcarComoDerrota("O tempo expirou!");
                         }
                     }
                 });
@@ -794,22 +564,19 @@
         function marcarComoDerrota(motivo) {
             myStatus = "perdeu";
             atualizarMeuStatusNoFirebase();
-            triggerGrandDeath();
-            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}. Você entrou no Modo Espectador.`);
+            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra era: ${palavraSecreta}.`);
             document.getElementById('game-keyboard').style.opacity = "0.3";
             document.getElementById('game-keyboard').style.pointerEvents = "none";
         }
 
         function atualizarMeuStatusNoFirebase() {
             if (!roomId || !username) return;
-            const avatarUrl = document.getElementById('input-avatar').value.trim();
             database.ref('salas/' + roomId + '/jogadores/' + username).set({
                 status: myStatus,
                 linhaAtual: currentRow,
                 grid: gridStates,
-                palpites: guesses, // Envia as letras digitadas em tempo real para o Firebase
-                ready: isReady,
-                avatar: avatarUrl
+                palpites: guesses,
+                ready: isReady
             });
         }
 
@@ -818,7 +585,9 @@
             container.innerHTML = "";
 
             for (let player in jogadoresObjeto) {
-                const pData = jugadoresObjeto[player];
+                if (player === username) continue;
+
+                const pData = jogadoresObjeto[player];
                 const card = document.createElement('div');
                 card.className = `player-card ${pData.status || ''}`;
 
@@ -833,9 +602,7 @@
                     if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
                 }
 
-                const imgTag = pData.avatar ? `<img src="${pData.avatar}" style="width:26px; height:26px; border-radius:50%; object-fit:cover; margin-right:8px; border:1px solid #555;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 width=%2226%22 height=%2226%22><circle cx=%2212%22 cy=%2212%22 r=%2212%22 fill=%23444 /><text x=%2250%%22 y=%2255%%22 font-size=%2212%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>👤</text></svg>'">` : `<span style="font-size:1.1rem; margin-right:8px;">👤</span>`;
-
-                header.innerHTML = `<div style="display:flex; align-items:center;">${imgTag} <span>${player} ${player === username ? '(Você)' : ''}</span></div><span>${statusLabel}</span>`;
+                header.innerHTML = `<span>${player}</span><span>${statusLabel}</span>`;
                 card.appendChild(header);
 
                 const miniGrid = document.createElement('div');
@@ -848,15 +615,12 @@
                         for (let c = 0; c < 5; c++) {
                             const mCell = document.createElement('div');
                             mCell.className = 'mini-cell';
-                            if (pData.grid[r] && pData.grid[r][c]) {
-                                mCell.classList.add(pData.grid[r][c]);
-                            }
+                            if (pData.grid[r] && pData.grid[r][c]) mCell.classList.add(pData.grid[r][c]);
                             
-                            // CONDIÇÃO ATUALIZADA: Revela o palpite real se o jogador já morreu ou ganhou!
+                            // Mostra letras apenas se o jogador já tiver ganhado ou morrido
                             if ((pData.status === "ganhou" || pData.status === "perdeu") && pData.palpites && pData.palpites[r] && pData.palpites[r][c]) {
                                 mCell.innerText = pData.palpites[r][c];
                             }
-                            
                             mRow.appendChild(mCell);
                         }
                         miniGrid.appendChild(mRow);
@@ -865,34 +629,6 @@
                 card.appendChild(miniGrid);
                 container.appendChild(card);
             }
-        }
-
-        function triggerStartAnimation() {
-            const overlay = document.getElementById('start-match-overlay');
-            overlay.style.display = 'flex';
-            setTimeout(() => { overlay.style.display = 'none'; }, 1500);
-        }
-
-        function triggerBombFlash() {
-            const boardGrid = document.getElementById('board-grid');
-            boardGrid.style.animation = 'shake 0.5s';
-            setTimeout(() => { boardGrid.style.animation = ''; }, 500);
-
-            const flash = document.getElementById('bomb-flash');
-            flash.classList.add('bomb-active');
-            setTimeout(() => { flash.classList.remove('bomb-active'); }, 800);
-        }
-
-        function triggerGrandVictory() {
-            const overlay = document.getElementById('grand-victory-overlay');
-            overlay.style.display = 'flex';
-            setTimeout(() => { overlay.style.display = 'none'; }, 3000);
-        }
-
-        function triggerGrandDeath() {
-            const overlay = document.getElementById('grand-death-overlay');
-            overlay.style.display = 'flex';
-            setTimeout(() => { overlay.style.display = 'none'; }, 3000);
         }
 
         function mostrarOverlay(titulo, mensagem) {
