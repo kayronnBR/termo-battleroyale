@@ -118,7 +118,6 @@
             <input type="text" id="input-room-id" placeholder="Código da Sala (Ex: 4812)">
             <button onclick="entrarNaSala()" class="btn-secondary">Entrar na Sala</button>
 
-            <!-- BOTOES ATUALIZADOS PARA REDIRECIONAMENTO EXTERNO -->
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button onclick="abrirFormularioSugestao()" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">💡 Sugestão</button>
                 <button onclick="abrirFormularioAnuncio()" class="btn-secondary" style="margin-top:0; padding: 8px; font-size: 0.85rem;">📢 Anuncie Aqui</button>
@@ -334,6 +333,7 @@
         let amIHost = false;
         let roomStatus = "lobby";
         let timerInterval = null;
+        let jogoIniciado = false; 
 
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
@@ -361,21 +361,15 @@
             bannerAtualIndex = (bannerAtualIndex + 1) % LISTA_ANUNCIOS.length;
         }
 
-        /* ----------------------------------------------------
-           FUNÇÕES ALTERADAS PARA LINKS EXTERNOS DE FORMULÁRIOS
-           ---------------------------------------------------- */
         function abrirFormularioSugestao() {
-            // Insira a URL do seu formulário de sugestão entre as aspas abaixo
             const urlFormulario = "https://sua-url-aqui.com/formulario-sugestao";
             window.open(urlFormulario, "_blank");
         }
 
         function abrirFormularioAnuncio() {
-            // Insira a URL do seu formulário de anúncios entre as aspas abaixo
             const urlFormulario = "https://sua-url-aqui.com/formulario-anuncio";
             window.open(urlFormulario, "_blank");
         }
-        /* ---------------------------------------------------- */
 
         const board = document.getElementById('board-grid');
         for (let r = 0; r < 6; r++) {
@@ -514,11 +508,20 @@
                 const timerMsg = document.getElementById('timer-message');
 
                 if (roomStatus === "lobby") {
+                    if (jogoIniciado) {
+                        resetarTabuleiroLocal();
+                        jogoIniciado = false;
+                    }
                     lobbyPanel.style.display = "block";
                     playerArea.style.opacity = "0.25";
                     playerArea.style.pointerEvents = "none";
                     timerMsg.innerText = "Aguardando início no lobby...";
-                    if (amIHost) hostStartBtn.style.display = "block";
+                    
+                    if (amIHost) {
+                        hostStartBtn.style.display = "block";
+                        const btnReset = document.getElementById('btn-host-reset');
+                        if (btnReset) btnReset.style.display = "none";
+                    }
 
                     if (data.jogadores) {
                         const listaJogadores = Object.values(data.jogadores);
@@ -532,12 +535,47 @@
                         }
                     }
                 } else if (roomStatus === "jogando") {
+                    jogoIniciado = true;
                     lobbyPanel.style.display = "none";
                     if (myStatus === "jogando") {
                         playerArea.style.opacity = "1";
                         playerArea.style.pointerEvents = "all";
                     }
                     if (!data.timerStart) timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
+
+                    // CHECAR SE TODOS OS JOGADORES TERMINARAM (GANHARAM OU PERDERAM)
+                    if (data.jogadores) {
+                        const listaJogadores = Object.values(data.jogadores);
+                        const todosTerminaram = listaJogadores.every(p => p.status === "ganhou" || p.status === "perdeu");
+                        
+                        if (todosTerminaram) {
+                            if (amIHost) {
+                                lobbyPanel.style.display = "block";
+                                hostStartBtn.style.display = "none";
+                                document.getElementById('btn-ready-toggle').style.display = "none";
+                                
+                                let btnReset = document.getElementById('btn-host-reset');
+                                if (!btnReset) {
+                                    btnReset = document.createElement('button');
+                                    btnReset.id = 'btn-host-reset';
+                                    btnReset.className = 'btn-start';
+                                    btnReset.style.marginTop = "10px";
+                                    btnReset.style.backgroundColor = "#2f80ed";
+                                    btnReset.innerText = 'Reiniciar Nova Partida 🔄';
+                                    btnReset.onclick = reiniciarPartida;
+                                    lobbyPanel.appendChild(btnReset);
+                                }
+                                btnReset.style.display = "block";
+                                document.getElementById('lobby-status-desc').innerText = "Rodada finalizada! Todos os jogadores terminaram.";
+                            } else {
+                                timerMsg.innerText = "Fim de jogo! Aguardando o Host iniciar uma nova partida...";
+                            }
+                        } else {
+                            const btnReset = document.getElementById('btn-host-reset');
+                            if (btnReset) btnReset.style.display = "none";
+                            document.getElementById('btn-ready-toggle').style.display = "block";
+                        }
+                    }
                 }
 
                 if (data.timerStart && !timerInterval) {
@@ -567,6 +605,85 @@
 
         function forçarInicioPartida() {
             database.ref('salas/' + roomId).update({ status: "jogando" });
+        }
+
+        // NOVA FUNÇÃO: PERMITE AO HOST LIMPAR E RECOMEÇAR O LOBBY
+        function reiniciarPartida() {
+            const novaPalavra = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
+            const btnReset = document.getElementById('btn-host-reset');
+            if (btnReset) btnReset.style.display = "none";
+
+            database.ref('salas/' + roomId).update({
+                palavra: novaPalavra,
+                status: "lobby",
+                timerStart: null
+            }).then(() => {
+                database.ref('salas/' + roomId + '/jogadores').once('value', (snapshot) => {
+                    const jogadores = snapshot.val();
+                    if (jogadores) {
+                        const atualizacoes = {};
+                        for (let player in jogadores) {
+                            atualizacoes[player + '/status'] = "jogando";
+                            atualizacoes[player + '/linhaAtual'] = 0;
+                            atualizacoes[player + '/ready'] = false;
+                            atualizacoes[player + '/grid'] = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+                        }
+                        database.ref('salas/' + roomId + '/jogadores').update(atualizacoes);
+                    }
+                });
+            });
+        }
+
+        // NOVA FUNÇÃO: LIMPA COMPLETAMENTE O CLIENTE PARA A PRÓXIMA RODADA
+        function resetarTabuleiroLocal() {
+            currentRow = 0;
+            currentCol = 0;
+            maxRowsAllowed = 6;
+            myStatus = "jogando";
+            isReady = false;
+            
+            guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+            gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            document.getElementById('timer-display').style.display = "none";
+            document.getElementById('timer-display').innerText = "02:00";
+            document.getElementById('timer-message').innerText = "Aguardando início no lobby...";
+
+            for (let r = 0; r < 6; r++) {
+                const row = document.getElementById(`row-${r}`);
+                if (row) row.classList.remove('eliminated');
+                for (let c = 0; c < 5; c++) {
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    if (cell) {
+                        cell.innerText = "";
+                        cell.className = "cell";
+                    }
+                }
+            }
+
+            for (let i = 65; i <= 90; i++) {
+                const letra = String.fromCharCode(i);
+                const keyElement = document.getElementById(`key-${letra}`);
+                if (keyElement) {
+                    keyElement.classList.remove('correct', 'present', 'absent');
+                }
+            }
+            
+            document.getElementById('game-keyboard').style.opacity = "1";
+            document.getElementById('game-keyboard').style.pointerEvents = "all";
+
+            fecharOverlay();
+
+            const btnReady = document.getElementById('btn-ready-toggle');
+            if (btnReady) {
+                btnReady.innerText = "Marcar como Pronto";
+                btnReady.style.background = "var(--color-present)";
+                btnReady.style.display = "block";
+            }
         }
 
         function handlePhysicalKeyboard(e) {
