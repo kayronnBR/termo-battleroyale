@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1 Termo Battle Royale 👑</title>
+    <title>Termo Battle Royale 👑</title>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
@@ -16,7 +16,6 @@
             --color-border: #3a3a3c;
             --color-text: #ffffff;
             --color-disabled: #222224;
-            --color-public: #2f6ced;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -29,19 +28,13 @@
         p { color: #86868b; margin-bottom: 20px; }
 
         /* Setup Screen */
-        .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 400px; margin: 30px auto 15px auto; }
+        .auth-container { background: #1c1c1e; padding: 30px; border-radius: 12px; border: 1px solid var(--color-border); max-width: 400px; margin: 40px auto; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: #2c2c2e; border: 1px solid var(--color-border); color: white; border-radius: 6px; font-size: 1rem; text-align: center; }
         button { width: 100%; padding: 12px; background: var(--color-correct); border: none; color: white; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
         button:hover { background: #43723f; }
-        .btn-public { background: var(--color-public); }
-        .btn-public:hover { background: #2250b5; }
         .btn-secondary { background: #48484a; }
         .btn-secondary:hover { background: #3a3a3c; }
-        .divider { margin: 20px 0 10px 0; color: #86868b; font-size: 0.8rem; font-weight: bold; letter-spacing: 1px; }
-
-        /* Footer Customizado */
-        .setup-footer { margin-top: 20px; font-size: 0.8rem; color: #636366; text-align: center; line-height: 1.4; }
-        .setup-footer strong { color: #aeaeae; font-weight: 600; }
+        .divider { margin: 20px 0; color: #86868b; font-size: 0.9rem; }
 
         /* Game Screen Layout */
         .game-layout { display: flex; flex-direction: row; gap: 30px; justify-content: center; align-items: flex-start; margin-top: 20px; flex-wrap: wrap; }
@@ -83,7 +76,7 @@
         .player-card { background: #2c2c2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 5px solid #86868b; text-align: left; }
         .player-card.ganhou { border-left-color: var(--color-correct); }
         .player-card.perdeu { border-left-color: #ff453a; }
-        .player-card-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+        .player-card-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
         
         /* Mini Grid for Spectating */
         .mini-grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 3px; width: 115px; margin-top: 8px; }
@@ -107,21 +100,13 @@
         
         <div class="auth-container">
             <input type="text" id="input-username" placeholder="Seu Nome / Nickname" maxlength="12">
-            
-            <div class="divider">MODO PÚBLICO</div>
-            <button onclick="entrarSalaPublica()" class="btn-public">Jogar em Sala Pública 🌍</button>
-            
-            <div class="divider">MODO PRIVADO</div>
-            <button onclick="criarNovaSala()">Criar Sala Privada 🔒</button>
-            <div style="margin-top: 15px;"></div>
+            <input type="text" id="input-avatar" placeholder="URL da Foto de Perfil (Opcional)">
+            <div class="divider">---</div>
+            <button onclick="criarNovaSala()">Criar Nova Sala</button>
+            <div class="divider">OU</div>
             <input type="text" id="input-room-id" placeholder="Código da Sala (Ex: 4812)">
-            <button onclick="entrarNaSala()" class="btn-secondary">Entrar via Código</button>
+            <button onclick="entrarNaSala()" class="btn-secondary">Entrar na Sala</button>
         </div>
-
-        <footer class="setup-footer">
-            Desenvolvido com ❤️ por <strong>Kayronn Monteiro</strong><br>
-            com o suporte inteligente da IA do <strong>Google Gemini</strong> ✨
-        </footer>
     </div>
 
     <div id="screen-game" class="screen">
@@ -136,6 +121,8 @@
 
             <div id="timer-message" style="margin-top: 10px;">Aguardando a partida iniciar...</div>
             <div id="timer-display">02:00</div>
+            
+            <button class="btn-start" id="btn-host-reset" onclick="reiniciarSala()" style="display: none; margin-top: 15px; background: #2f6ced;">Nova Partida (Reiniciar Sala) 🔄</button>
         </div>
 
         <div class="game-layout">
@@ -196,7 +183,7 @@
     </div>
 
     <script>
-        // CONFIGURAÇÕES DO FIREBASE INTEGRADAS
+        // CONFIGURAÇÕES REAIS DO SEU FIREBASE INTEGRADAS
         const firebaseConfig = {
             apiKey: "AIzaSyBJZ89pk9LNXGM-SdOdl5SmymqJJ8cMPRU",
             authDomain: "termo-battle-royale.firebaseapp.com",
@@ -211,7 +198,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // DICIONÁRIO DE PALAVRAS
+        // DICIONÁRIO COMPLETO PRESERVADO
         const DICIONARIO = [
             "POBRE", "FILMA", "TERMO", "JOGOS", "NUVEM", "TEXTO", "LETRA", "BRUTA", "PLANO", "PODER",
             "SAGAZ", "PORTA", "CORPO", "FESTA", "GRUPO", "TEMPO", "AMIGO", "CARRO", "CASAL", "CHAVE",
@@ -222,7 +209,80 @@
             "CRIAR", "FAZER", "MANHA", "TARDE", "PONTE", "TERRA", "DADOS", "GATOS", "JOGAR", "NOBRE",
             "NUNCA", "FACIL", "VIRUS", "AUDIO", "MIDIA", "TAXAS", "TOTAL", "LOCAL", "GERAL", "FINAL",
             "FISCAL", "MORAL", "RURAL", "LEGAL", "GRAVE", "BRISA", "CLIMA", "SALDO", "TURMA", "POUCO",
-            "MUITO", "CHEIO", "VERDE", "REINO", "ALUNO", "PRETO", "FORNO", "CUPOM", "PLACA", "FOGAO"
+            "MUITO", "CHEIO", "VERDE", "REINO", "ALUNO", "PRETO", "FORNO", "CUPOM", "PLACA", "FOGAO",
+            "VALE", "VAGAO", "CHAPA", "FAROL", "BLOCO", "SUTIL", "REVER", "PENSAR", "CAFE", "LEITE",
+            "ARROZ", "MANGA", "COPO", "PRATO", "GARFO", "FACAO", "FORCA", "CORRE", "FAZIA", "VERSO",
+            "PROVA", "MARCA", "SIGLA", "TEMAS", "VERBO", "TERCO", "PAUTA", "TESTE", "FILME", "PRESO",
+            "SOLTO", "LIVRES", "DANCA", "CANTA", "CORRA", "FALOU", "OUVIU", "ESTOU", "ROUPA", "CREME",
+            "BATER", "BEBER", "FUGIR", "SONHO", "TEMOR", "FUNDO", "LINDO", "CEGO", "SURDO", "BRAVO",
+            "AMPLO", "PLENO", "MUTUO", "CAUSA", "ARCO", "AUTOR", "ATRAS", "BAIXO", "BARCO", "BRIGA", 
+            "BUSCA", "BRUXA", "CALMA", "CAMPO", "CHEFÈ", "CINTO", "CIUME", "CLARO", "COBRE", "CONTA", 
+            "COROA", "CRIME", "CUSTO", "DENTE", "DISCO", "DOBRO", "DRAGA", "DUQUE", "EXAME", "FAIXA", 
+            "FARSA", "FAUNA", "FEIRA", "FERRO", "FIBRA", "FIRME", "FISCO", "FLAMA", "FLORA", "FLUXO",
+            "FOLHA", "FONTE", "FORMA", "FORTE", "FOSSO", "FRADE", "FRASE", "FRUTO", "FUMAR", "FUNDO",
+            "FURIA", "FUSAO", "GASTO", "GEADA", "GESSO", "GLOBO", "GRADE", "GRAVE", "GRAXA", "GRILO", 
+            "GRUTA", "HASTE", "HORTA", "HOTEL", "HUMOR", "IDADE", "IDOSO", "IGUAL", "ILHA", "IMPAR", 
+            "INDIO", "INFRA", "ITENS", "JARRA", "JATO", "JEITO", "JOIA", "JUROS", "JUSTO", "LABIO", 
+            "LAGOA", "LANCE", "LAPIS", "LARVA", "LASER", "LATEX", "LAUDO", "LEITE", "LEITO", "LEME", 
+            "LENTE", "LEQUE", "LESTE", "LIBRA", "LIDER", "LIMPO", "LINCE", "LINDO", "LIVRO", "LIVRE", 
+            "LOUSA", "LUCRO", "LUGAR", "LUPUS", "LUVA", "LUZES", "MACIO", "MAGIA", "MAGMA", "MAGRO", 
+            "MAIOR", "MALHA", "MANCO", "MANGA", "MANHA", "MANIA", "MANTA", "MARCO", "MASSA", "MATIZ", 
+            "MEIGO", "MENOR", "MENOS", "MENTA", "MESES", "METAL", "METRO", "MIADO", "MICRA", "MICRO", 
+            "MILHO", "MINAS", "MIOLO", "MISTO", "MITOS", "MOCO", "MOEDA", "MOER", "MOFA", "MOFO", 
+            "MOLAR", "MOLDE", "MOLHO", "MONGE", "MONTE", "MORAL", "MORTE", "MORRO", "MOSCA", "MOTOR", 
+            "MUDAS", "MUDO", "MUITO", "MULTA", "MUNDO", "MURO", "MUSEU", "MUSGO", "MUTUA", "NACAO", 
+            "NAVIO", "NEVOA", "NINHO", "NIVEL", "NOBRE", "NOITE", "NOIVA", "NOIVO", "NORTE", "NOSSO", 
+            "NOTAS", "NOVA", "NUNCA", "NUVEM", "OASIS", "OBTER", "OESTE", "OLHAR", "ONDA", "ONTEM", 
+            "OPCAO", "ORGAO", "OURO", "OUTRO", "OUVIR", "OXIDO", "PACTO", "PADRE", "PAGAR", "PALHA", 
+            "PALMA", "PAPEL", "PARAR", "PARDO", "PAREO", "PARTE", "PARTO", "PASSO", "PASTA", "PASTO", 
+            "PATIO", "PAUTA", "PAVIO", "PEDAL", "PEDRA", "PEDRO", "PEIXE", "PELES", "PELOS", "PENAS", 
+            "PENTE", "PERDA", "PERTO", "PERU", "PESAR", "PESO", "PESTE", "PIANO", "PIADA", "PILHA", 
+            "PINGO", "PINHO", "PINOS", "PINTA", "PINTO", "PIRES", "PISO", "PISTA", "PIZZA", "PLACA", 
+            "PLANO", "PLENA", "PLENO", "PLUMA", "POBRE", "POCO", "PODER", "POEMA", "POETA", "POLPA", 
+            "POLVO", "POMAR", "POMBA", "POMBO", "PONTA", "PONTO", "PORCO", "PORTA", "PORTO", "POSSE", 
+            "POSTE", "POSTO", "POTES", "POUCO", "POUSO", "POVO", "PRADO", "PRAGA", "PRATO", "PRAZO", 
+            "PRECO", "PREGO", "PRESA", "PRESO", "PRETO", "PRIMO", "PRIOR", "PROSA", "PROVA", "PUDIM", 
+            "PULGA", "PULO", "PULSO", "PUMA", "PUNHO", "PURA", "PURO", "PUXAR", "QUASE", "QUEDA", 
+            "QUERO", "QUILO", "QUINA", "QUOTA", "RADAR", "RADIO", "RAIO", "RAIVA", "RAIZ", "RAMAL", 
+            "RAMOS", "RAMPA", "RANGO", "RAPAZ", "RARO", "RASGO", "RAZAO", "REDE", "REDUZ", "REFAZ", 
+            "REFEM", "REGRA", "REGUA", "REINO", "RELES", "REMO", "RENDA", "RENTE", "REPOR", "RESTO", 
+            "RETRO", "REVER", "REVIR", "REZAR", "RIFA", "RIFLE", "RITMO", "RIVAL", "ROCHA", "RODA", 
+            "RODO", "ROGAR", "ROLO", "ROMBO", "ROMPA", "RONCO", "RONDA", "ROUPA", "ROXO", "RUBRO", 
+            "RUDE", "RUGBY", "RUIDO", "RUINA", "RURAL", "RUSSO", "SABER", "SABIO", "SABOR", "SACAR", 
+            "SACO", "SACRA", "SACRO", "SAFRA", "SAGAZ", "SAIDA", "SALDO", "SALMO", "SALSA", "SALSO", 
+            "SALVA", "SALVO", "SAMBA", "SANTO", "SAPO", "SAQUE", "SARNA", "SARRO", "SAUDE", "SAUNA", 
+            "SECA", "SECO", "SEDE", "SEDEX", "SEIO", "SEITA", "SEIXO", "SELO", "SELVA", "SENDO", 
+            "SENHA", "SENSU", "SENTA", "SENTI", "SENTO", "SERAO", "SEREI", "SERIA", "SERIE", "SERIO", 
+            "SERRA", "SERRO", "SERVA", "SERVO", "SEXTA", "SEXTO", "SIGLA", "SIGMA", "SIGNO", "SILVA", 
+            "SILVO", "SIMIO", "SINAL", "SINO", "SINTA", "SINTO", "SITIO", "SITUA", "SKATE", "SLIDE", 
+            "SOADO", "SOBRA", "SOBRE", "SOCIO", "SODA", "SOFAS", "SOGRA", "SOGRO", "SOLA", "SOLAR", 
+            "SOLDA", "SOLDO", "SOLO", "SOLTA", "SOLTO", "SOMAR", "SONDA", "SONHO", "SONO", "SOPRO", 
+            "SORDO", "SORO", "SORTE", "SOUZA", "SUADO", "SUBIR", "SUCO", "SUDOR", "SUECO", "SUGAR", 
+            "SUICO", "SUINO", "SUITE", "SUJA", "SUJO", "SULCO", "SUMIR", "SUMO", "SUPER", "SUPOR", 
+            "SURDA", "SURDO", "SURFE", "SURTO", "SUSTO", "SUTIL", "SUTRA", "TABUA", "TACHO", "TACO", 
+            "TALCO", "TALHA", "TALHO", "TALO", "TAMPA", "TAMPO", "TANGA", "TANGO", "TANTO", "TAPAR", 
+            "TARDE", "TARJA", "TAXAS", "TEATRO", "TECLA", "TECO", "TEIA", "TEIMA", "TEIXO", "TELA", 
+            "TELHA", "TELHO", "TEMAS", "TEMER", "TEMOR", "TEMPO", "TENAZ", "TENDO", "TENIS", "TENOR", 
+            "TENSA", "TENSO", "TENTA", "TENTO", "TERCO", "TERRA", "TESAO", "TESE", "TESTA", "TESTE", 
+            "TETO", "TEXAS", "TEXTO", "TIARA", "TIBIA", "TIGRE", "TINTO", "TIPOS", "TIRAR", "TIRO", 
+            "TOCA", "TOCAR", "TOCHA", "TOGA", "TOMAR", "TOMBO", "TOMO", "TONEL", "TONER", "TONTO", 
+            "TOPAR", "TOPO", "TOQUE", "TORAX", "TORCE", "TORRE", "TORTO", "TOSCO", "TOSSE", "TOTAL", 
+            "TOURO", "TRACO", "TRAJE", "TRAMA", "TRAPO", "TRATA", "TRATO", "TRAVA", "TRAVO", "TREM", 
+            "TRENA", "TRENS", "TREVO", "TREZE", "TRIBO", "TRICO", "TRIGO", "TRINA", "TRINO", "TRIO", 
+            "TRIPA", "TRIST", "TRONO", "TROPA", "TROVA", "TROVO", "TRUCO", "TRUFA", "TRUTA", "TUBO", 
+            "TUDO", "TUFO", "TUMBA", "TUMOR", "TUNEL", "TURBA", "TURBO", "TURCO", "TURMA", "TURNO", 
+            "TUTOR", "UNICO", "UNIDA", "UNIDO", "URANO", "URSO", "URUBU", "USADO", "USINA", "UTERO", 
+            "VACUO", "VADIO", "VAGAO", "VAGOS", "VAIA", "VALE", "VALER", "VALOR", "VALVA", "VAPOR", 
+            "VARA", "VARAL", "VARIA", "VARIO", "VASCO", "VASO", "VASTO", "VAZIO", "VEADO", "VEGAS", 
+            "VEIA", "VELHA", "VELHO", "VELOZ", "VENCE", "VENDA", "VENDO", "VENIA", "VENHO", "VENTO", 
+            "VENUS", "VERBA", "VERBO", "VERDE", "VERGA", "VERME", "VERSO", "VERTE", "VERVE", "VESTE", 
+            "VETO", "VETOR", "VEZES", "VIAS", "VIBRA", "VICIO", "VIDA", "VIDEO", "VIDRO", "VIELA", 
+            "VIGIA", "VIGOR", "VILAO", "VIMOS", "VINHO", "VINTE", "VIOLA", "VIRAL", "VIRAR", "VIRIL", 
+            "VIRUS", "VISAO", "VISAR", "VISCO", "VISO", "VISTA", "VISTO", "VITAL", "VITOR", "VIVAZ", 
+            "VIVER", "VIVO", "VOCAL", "VODKA", "VOGAL", "VOGAR", "VOLEI", "VOLTA", "VOLTO", "VOSSO", 
+            "VOTAR", "VOTO", "VOVO", "VULGO", "VULTO", "VULVA", "XADRE", "XARA", "XEROX", "XINGA", 
+            "XISTO", "YOGA", "ZEBRA", "ZELAR", "ZELO", "ZERAR", "ZERO", "ZINCO", "ZOMBA", "ZONA", 
+            "ZONZO", "ZOOM", "ZORRA", "ZORRO", "ZUMBI"
         ];
 
         let username = "";
@@ -242,9 +302,10 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('termo_br_username');
-            if (savedName) {
-                document.getElementById('input-username').value = savedName;
-            }
+            if (savedName) document.getElementById('input-username').value = savedName;
+            
+            const savedAvatar = localStorage.getItem('termo_br_avatar');
+            if (savedAvatar) document.getElementById('input-avatar').value = savedAvatar;
         });
 
         // Inicializar Grade do Tabuleiro Visual
@@ -268,56 +329,18 @@
                 const copyBtn = document.getElementById('btn-copy-code');
                 copyBtn.innerText = "Copiado! ✅";
                 setTimeout(() => { copyBtn.innerText = "Copiar Código"; }, 2000);
+            }).catch(() => {
+                alert("Código da sala: " + roomId);
             });
         }
 
-        // LÓGICA DE SALA PÚBLICA (Matchmaking automático)
-        function entrarSalaPublica() {
-            username = document.getElementById('input-username').value.trim();
-            if (!username) return alert("Insira um nome válido!");
-            localStorage.setItem('termo_br_username', username);
-
-            // Varre o banco procurando uma sala pública que ainda esteja no lobby
-            database.ref('salas').once('value', (snapshot) => {
-                let salaDisponivelId = null;
-                if (snapshot.exists()) {
-                    const salas = snapshot.val();
-                    for (let id in salas) {
-                        if (salas[id].tipo === "publica" && salas[id].status === "lobby") {
-                            salaDisponivelId = id;
-                            break;
-                        }
-                    }
-                }
-
-                if (salaDisponivelId) {
-                    // Se achou uma vaga, conecta nela
-                    roomId = salaDisponivelId;
-                    entrarNaSalaComId(roomId);
-                } else {
-                    // Se não achou, cria uma nova sala pública automática
-                    roomId = Math.floor(1000 + Math.random() * 9000).toString();
-                    const palavraEscolhida = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
-
-                    database.ref('salas/' + roomId).set({
-                        palavra: palavraEscolhida,
-                        status: "lobby",
-                        tipo: "publica",
-                        host: username,
-                        timerStart: null
-                    }).then(() => {
-                        amIHost = true;
-                        entrarNaSalaComId(roomId);
-                    });
-                }
-            });
-        }
-
-        // Criar Sala Privada
         function criarNovaSala() {
             username = document.getElementById('input-username').value.trim();
             if (!username) return alert("Insira um nome válido!");
+            
+            const avatarUrl = document.getElementById('input-avatar').value.trim();
             localStorage.setItem('termo_br_username', username);
+            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
             const palavraEscolhida = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
@@ -325,7 +348,6 @@
             database.ref('salas/' + roomId).set({
                 palavra: palavraEscolhida,
                 status: "lobby",
-                tipo: "privada",
                 host: username,
                 timerStart: null
             }).then(() => {
@@ -334,22 +356,26 @@
             });
         }
 
-        // Entrar em Sala por Código
         function entrarNaSala() {
             username = document.getElementById('input-username').value.trim();
             roomId = document.getElementById('input-room-id').value.trim();
+            
             if (!username || !roomId) return alert("Preencha o nome e o código da sala!");
             
+            const avatarUrl = document.getElementById('input-avatar').value.trim();
             localStorage.setItem('termo_br_username', username);
+            localStorage.setItem('termo_br_avatar', avatarUrl);
             
             database.ref('salas/' + roomId).once('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    if (snapshot.val().status === "jogando") {
-                        return alert("A partida nessa sala já começou!");
+                    const salaData = snapshot.val();
+                    if (salaData.status === "jogando") {
+                        alert("A partida nessa sala já começou!");
+                        return;
                     }
                     entrarNaSalaComId(roomId);
                 } else {
-                    alert("Sala privada não encontrada!");
+                    alert("Sala não encontrada!");
                 }
             });
         }
@@ -357,6 +383,7 @@
         function entrarNaSalaComId(id) {
             document.getElementById('screen-setup').classList.remove('active');
             document.getElementById('screen-game').classList.add('active');
+            document.getElementById('room-title').innerHTML = `SALA: <span style="color:var(--color-present)">${id}</span> <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar</button>`;
 
             atualizarMeuStatusNoFirebase();
 
@@ -364,17 +391,21 @@
                 const data = snapshot.val();
                 if (!data) return;
 
+                let oldRoomStatus = roomStatus;
                 palavraSecreta = data.palavra.toUpperCase();
                 roomStatus = data.status;
-                const modalidade = data.tipo === "publica" ? "PÚBLICA 🌍" : "PRIVADA 🔒";
-
-                document.getElementById('room-title').innerHTML = `SALA ${modalidade}: <span style="color:var(--color-present)">${id}</span> <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar Código</button>`;
 
                 if (data.host === username) amIHost = true;
+
+                // DETECTAR SE O HOST MANDOU REINICIAR A PARTIDA PARA O LOBBY
+                if (oldRoomStatus === "jogando" && roomStatus === "lobby") {
+                    resetEstadoLocal();
+                }
 
                 const lobbyPanel = document.getElementById('lobby-panel');
                 const playerArea = document.getElementById('player-area');
                 const hostStartBtn = document.getElementById('btn-host-start');
+                const hostResetBtn = document.getElementById('btn-host-reset');
                 const timerMsg = document.getElementById('timer-message');
 
                 if (roomStatus === "lobby") {
@@ -382,15 +413,38 @@
                     playerArea.style.opacity = "0.25";
                     playerArea.style.pointerEvents = "none";
                     timerMsg.innerText = "Aguardando início no lobby...";
+                    hostResetBtn.style.display = "none"; 
                     
                     if (amIHost) hostStartBtn.style.display = "block";
+
+                    // LOGICA DE INÍCIO AUTOMÁTICO SE TODOS ESTIVEREM PRONTOS
+                    if (data.jogadores) {
+                        let totalJogadores = Object.keys(data.jogadores).length;
+                        let totalProntos = 0;
+                        for (let p in data.jogadores) {
+                            if (data.jogadores[p].ready) totalProntos++;
+                        }
+                        document.getElementById('lobby-status-desc').innerText = `Jogadores prontos: ${totalProntos}/${totalJogadores}`;
+                        
+                        if (totalJogadores >= 1 && totalProntos === totalJogadores) {
+                            if (amIHost) {
+                                database.ref('salas/' + roomId).update({ status: "jogando" });
+                            }
+                        }
+                    }
                 } else if (roomStatus === "jogando") {
                     lobbyPanel.style.display = "none";
                     if (myStatus === "jogando") {
                         playerArea.style.opacity = "1";
                         playerArea.style.pointerEvents = "all";
                     }
-                    if (!data.timerStart) timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
+                    if (!data.timerStart) {
+                        timerMsg.innerText = "Partida iniciada! Descubra a palavra secreta.";
+                    }
+                    
+                    // Exibir botão de reset apenas para o Criador/Host durante o jogo
+                    if (amIHost) hostResetBtn.style.display = "block";
+                    else hostResetBtn.style.display = "none";
                 }
 
                 if (data.timerStart && !timerInterval) iniciarContagemRegressivaBR(data.timerStart);
@@ -398,6 +452,75 @@
             });
 
             window.addEventListener('keydown', handlePhysicalKeyboard);
+        }
+
+        // LIMPAR O TABULEIRO COMPLETO PARA UMA NOVA PARTIDA
+        function resetEstadoLocal() {
+            currentRow = 0;
+            currentCol = 0;
+            maxRowsAllowed = 6;
+            myStatus = "jogando";
+            isReady = false;
+            guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+            gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
+            
+            for (let r = 0; r < 6; r++) {
+                const row = document.getElementById(`row-${r}`);
+                if (row) row.classList.remove('eliminated');
+                for (let c = 0; c < 5; c++) {
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    if (cell) {
+                        cell.innerText = "";
+                        cell.className = "cell";
+                    }
+                }
+            }
+            
+            const keys = document.querySelectorAll('.key');
+            keys.forEach(k => k.classList.remove('correct', 'present', 'absent'));
+            
+            fecharOverlay();
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            document.getElementById('timer-display').style.display = "none";
+            document.getElementById('timer-message').innerText = "Aguardando a partida iniciar...";
+            document.getElementById('game-keyboard').style.opacity = "1";
+            document.getElementById('game-keyboard').style.pointerEvents = "all";
+            
+            const btnReady = document.getElementById('btn-ready-toggle');
+            if (btnReady) {
+                btnReady.innerText = "Marcar como Pronto";
+                btnReady.style.background = "var(--color-present)";
+            }
+            
+            atualizarMeuStatusNoFirebase();
+        }
+
+        // CONTROLADOR DO HOST PARA REINICIAR A SALA INTEIRA NO FIREBASE
+        function reiniciarSala() {
+            if (!amIHost) return;
+            const novaPalavra = DICIONARIO[Math.floor(Math.random() * DICIONARIO.length)];
+            
+            database.ref('salas/' + roomId + '/jogadores').once('value', (snapshot) => {
+                let updates = {};
+                if (snapshot.exists()) {
+                    const jogadores = snapshot.val();
+                    for (let p in jogadores) {
+                        updates[`salas/${roomId}/jogadores/${p}/status`] = "jogando";
+                        updates[`salas/${roomId}/jogadores/${p}/linhaAtual`] = 0;
+                        updates[`salas/${roomId}/jogadores/${p}/grid`] = null;
+                        updates[`salas/${roomId}/jogadores/${p}/palpites`] = null;
+                        updates[`salas/${roomId}/jogadores/${p}/ready`] = false;
+                    }
+                }
+                updates[`salas/${roomId}/status`] = "lobby";
+                updates[`salas/${roomId}/palavra`] = novaPalavra;
+                updates[`salas/${roomId}/timerStart`] = null;
+                
+                database.ref().update(updates);
+            });
         }
 
         function alternarPronto() {
@@ -450,6 +573,11 @@
             const palpiteArray = guesses[currentRow];
             const palavraDigitada = palpiteArray.join("").toUpperCase();
 
+            if (!DICIONARIO.includes(palavraDigitada)) {
+                alert(`⚠️ A palavra "${palavraDigitada}" não existe no dicionário!`);
+                return; 
+            }
+
             let corretoContagem = 0;
             let palavraCheck = palavraSecreta.split("");
 
@@ -465,6 +593,7 @@
 
             for (let i = 0; i < 5; i++) {
                 if (gridStates[currentRow][i] === 'c') continue;
+                
                 const cell = document.getElementById(`cell-${currentRow}-${i}`);
                 const indexNaPalavra = palavraCheck.indexOf(palpiteArray[i]);
                 
@@ -504,10 +633,12 @@
             if (corretoContagem === 5) {
                 myStatus = "ganhou";
                 atualizarMeuStatusNoFirebase();
+                
                 database.ref('salas/' + roomId + '/timerStart').transaction((currentVal) => {
                     if (currentVal === null) return firebase.database.ServerValue.TIMESTAMP;
                 });
-                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra!");
+                
+                mostrarOverlay("VITÓRIA! 🎉", "Você adivinhou a palavra! Aguarde o fim da partida ou peça ao Host para iniciar outra.");
                 return;
             }
 
@@ -564,19 +695,23 @@
         function marcarComoDerrota(motivo) {
             myStatus = "perdeu";
             atualizarMeuStatusNoFirebase();
-            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra era: ${palavraSecreta}.`);
+            mostrarOverlay("ELIMINADO 💀", `${motivo} A palavra correta era: ${palavraSecreta}.`);
             document.getElementById('game-keyboard').style.opacity = "0.3";
             document.getElementById('game-keyboard').style.pointerEvents = "none";
         }
 
         function atualizarMeuStatusNoFirebase() {
             if (!roomId || !username) return;
+            const avatarField = document.getElementById('input-avatar');
+            const avatarUrl = avatarField ? avatarField.value.trim() : "";
+
             database.ref('salas/' + roomId + '/jogadores/' + username).set({
                 status: myStatus,
                 linhaAtual: currentRow,
                 grid: gridStates,
-                palpites: guesses,
-                ready: isReady
+                palpites: guesses, 
+                ready: isReady,
+                avatar: avatarUrl
             });
         }
 
@@ -587,7 +722,7 @@
             for (let player in jogadoresObjeto) {
                 if (player === username) continue;
 
-                const pData = jogadoresObjeto[player];
+                const pData = jugadoresObjeto[player];
                 const card = document.createElement('div');
                 card.className = `player-card ${pData.status || ''}`;
 
@@ -602,7 +737,13 @@
                     if (pData.status === "perdeu") statusLabel = "💀 Eliminado";
                 }
 
-                header.innerHTML = `<span>${player}</span><span>${statusLabel}</span>`;
+                // INSERÇÃO DA FOTO DE PERFIL REDONDA DO OPONENTE
+                let avatarHtml = "";
+                if (pData.avatar) {
+                    avatarHtml = `<img src="${pData.avatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; margin-right: 8px;" onerror="this.style.display='none'">`;
+                }
+
+                header.innerHTML = `<div style="display: flex; align-items: center;">${avatarHtml}<span>${player}</span></div><span>${statusLabel}</span>`;
                 card.appendChild(header);
 
                 const miniGrid = document.createElement('div');
@@ -617,9 +758,12 @@
                             mCell.className = 'mini-cell';
                             if (pData.grid[r] && pData.grid[r][c]) mCell.classList.add(pData.grid[r][c]);
                             
-                            // Mostra letras apenas se o jogador já tiver ganhado ou morrido
-                            if ((pData.status === "ganhou" || pData.status === "perdeu") && pData.palpites && pData.palpites[r] && pData.palpites[r][c]) {
+                            // SEGURANÇA VISUAL ANTI-SPOILER EXTREMA:
+                            // Só injeta o texto se VOCÊ localmente já terminou de jogar (myStatus !== "jogando")
+                            if (myStatus !== "jogando" && pData.palpites && pData.palpites[r] && pData.palpites[r][c]) {
                                 mCell.innerText = pData.palpites[r][c];
+                            } else {
+                                mCell.innerText = ""; 
                             }
                             mRow.appendChild(mCell);
                         }
