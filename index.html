@@ -24,6 +24,14 @@
             --color-absent: #3a3a3c;
         }
 
+        /* Classe de Sabotagem: Força as cores corretas e próximas a virarem cinza neutro */
+        body.sabotado {
+            --color-correct: #3a3a3c !important;
+            --color-present: #3a3a3c !important;
+            background-color: #241414 !important;
+            transition: background-color 0.5s ease;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--color-bg); color: var(--color-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; transition: background-color 0.5s ease; }
         
@@ -125,16 +133,7 @@
         footer a { color: var(--color-present); text-decoration: none; font-weight: bold; }
         footer a:hover { text-decoration: underline; }
 
-        /* Animações (Iguais à versão anterior) */
-        @keyframes splashIn {
-            0% { transform: translate(-50%, -50%) scale(0) rotate(-15deg); opacity: 0; }
-            40% { transform: translate(-50%, -50%) scale(1.4) rotate(10deg); opacity: 1; }
-            60% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; filter: blur(10px); }
-        }
-        .splash-start-title {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3.8rem; font-weight: 900; color: #ff9500; text-shadow: 0 0 20px #ff9500, 0 0 40px #ff453a; z-index: 9999; pointer-events: none; animation: splashIn 1.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; font-family: 'Impact', sans-serif; letter-spacing: 3px; text-align: center; width: 100%;
-        }
+        /* Animações residuais leves */
         @keyframes screenShake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             10% { transform: translate(-2px, -3px) rotate(-1deg); }
@@ -236,8 +235,8 @@
             <button onclick="entrarNaSala()" class="btn-secondary">Entrar na Sala</button>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <a href="https://URL_DA_SUA_SUGESTAO_AQUI.com" target="_blank" class="btn-secondary" style="display:inline-block; padding: 10px; font-size: 0.85rem; text-decoration: none; text-align:center; flex:1; border-radius: 6px; color: white;">💡 Sugestão</a>
-                <a href="https://URL_DO_SEU_ANUNCIO_AQUI.com" target="_blank" class="btn-secondary" style="display:inline-block; padding: 10px; font-size: 0.85rem; text-decoration: none; text-align:center; flex:1; border-radius: 6px; color: white;">📢 Anuncie Aqui</a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLScCjjUU77bMZUbif8qORTAgTXUZxSztiu0_PbcaKSzdqUyUKg/viewform?usp=sharing" target="_blank" class="btn-secondary" style="display:inline-block; padding: 10px; font-size: 0.85rem; text-decoration: none; text-align:center; flex:1; border-radius: 6px; color: white;">💡 Sugestão</a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdy0ooY6mo_WAGCnNJMLxx5RsQscHF3WOoVxqa1fQ8tyWFfoA/viewform?usp=dialog" target="_blank" class="btn-secondary" style="display:inline-block; padding: 10px; font-size: 0.85rem; text-decoration: none; text-align:center; flex:1; border-radius: 6px; color: white;">📢 Anuncie Aqui</a>
             </div>
         </div>
 
@@ -349,9 +348,20 @@
                 <span style="background-color: var(--color-absent);">CINZA</span> A letra não faz parte da palavra.<br><br>
                 <hr style="border-color: #333; margin: 15px 0;">
                 <strong style="color: #ff9500;">⚔️ MODO BATTLE ROYALE:</strong><br>
-                Jogue contra amigos! Assim que o primeiro jogador adivinhar a palavra, o modo "Morte Súbita" é ativado. Um cronômetro se inicia, e os jogadores restantes perderão uma tentativa (linha) a cada 2 minutos!
+                Jogue contra amigos! Assim que o primeiro jogador adivinhar a palavra, o modo "Morte Súbita" é ativado. Um cronômetro se inicia, e os jogadores restantes perderão uma tentativa (linha) a cada 2 minutos!<br><br>
+                <strong style="color: #ff453a;">💀 MECÂNICA DE SABOTAGEM:</strong><br>
+                Cuidado! Sempre que um jogador morrer por falta de linhas, ele **corrompe a partida por 20 segundos**! As cores de feedback somem e todas as letras começam a se misturar aleatoriamente na tela! Mortes simultâneas acumulam o tempo da pane!
             </div>
             <button onclick="document.getElementById('tutorial-overlay').style.display='none'">Entendi, vamos jogar!</button>
+        </div>
+    </div>
+
+    <div id="start-match-overlay" class="overlay" style="background: rgba(0,0,0,0.95);">
+        <div class="overlay-content" style="border: 2px solid var(--color-correct); box-shadow: 0 0 30px rgba(83, 141, 78, 0.4); max-width: 420px;">
+            <div style="font-size: 3.5rem; margin-bottom: 10px;">⚔️</div>
+            <h2 style="color: var(--color-correct); letter-spacing: 1px;">A PARTIDA INICIOU!</h2>
+            <p style="color: #ffffff; margin: 15px 0 25px 0; font-size: 1.05rem; line-height: 1.5;">O combate começou! Descubra a palavra secreta antes dos seus oponentes e cuidado com as sabotagens em massa!</p>
+            <button onclick="fecharModalInicioPartida()" style="background: var(--color-correct); font-size: 1.1rem; width: 100%; padding: 14px;">ENTRAR NO COMBATE 👑</button>
         </div>
     </div>
 
@@ -379,7 +389,6 @@
     </footer>
 
     <script>
-        // Função para checar se a URL carrega uma imagem válida
         function validarURLImagem(url) {
             return new Promise(resolve => {
                 const img = new Image();
@@ -391,7 +400,7 @@
 
         const LISTA_ANUNCIOS = [
             { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Anuncie+Aqui+Seu+Produto!&theme=dark", link: "https://docs.google.com/forms/d/e/1FAIpQLSdy0ooY6mo_WAGCnNJMLxx5RsQscHF3WOoVxqa1fQ8tyWFfoA/viewform?usp=dialog" },
-            { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Gostou+do+Jogo?+Envie+Sugestões!&theme=dark", link: "https://docs.google.com/forms/d/e/1FAIpQLScCjjUU77bMZUbif8qORTAgTXUZxSztiu0_PbcaKSzdqUyUKg/viewform?usp=sharing&ouid=103932070699342462645" },
+            { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Gostou+do+Jogo?+Envie+Sugestões!&theme=dark", link: "https://docs.google.com/forms/d/e/1FAIpQLScCjjUU77bMZUbif8qORTAgTXUZxSztiu0_PbcaKSzdqUyUKg/viewform?usp=sharing" },
             { imagem: "https://i.imgur.com/YM51Lha.png", link: "https://sociedadepinguim.com.br/" }
         ];
         let bannerAtualIndex = 0;
@@ -410,7 +419,6 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Array cru. O .filter(w => w.length === 5) garante que palavras de 4 letras não passem
         const DICIONARIO_COMPLETO_BRUTO = [
             "ABAFO", "ABALO", "ABATE", "ABONO", "ABRIL", "ACASO", "ACENO", "ACESO", "ACIDA", "ACIDO",
             "ACIMA", "ACOES", "ADEUS", "ADIAR", "ADOTO", "ADUBO", "ADVIR", "AFAGO", "AFETO", "AFIAR",
@@ -525,7 +533,6 @@
             "ZEBRA", "ZELAR", "ZINCO", "ZOMBA", "ZUMBI", "SUBIR", "BOSTA", "COBRA", "BORRA", "CHUCA", "BUNDA", "PORRA"
         ]; 
 
-        // Garante que absolutamente TODAS as palavras tenham 5 letras. Banimos as de 4.
         const DICIONARIO_COMPLETO = DICIONARIO_COMPLETO_BRUTO.filter(w => w.length === 5);
 
         let username = "";
@@ -541,7 +548,7 @@
         let timerInterval = null;
         let roomListener = null;
         let jogoIniciado = false;
-        let isProcessingWord = false; // Flag para segurar o Enter enquanto carrega do DB
+        let isProcessingWord = false;
 
         let lineTimerInterval = null;     
         let lineTimerSeconds = 120;       
@@ -549,6 +556,11 @@
         let alguemGanhou = false;         
         let presenceCheckInterval = null; 
         let presenceDialogOpen = false;   
+
+        // Variaveis da Nova Mecânica de Sabotagem
+        let jogadoresMortosProcessados = [];
+        let tempoSabotagemRestante = 0;
+        let intervaloSabotagem = null;
 
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
@@ -586,7 +598,6 @@
             });
         });
 
-        // Novo Sistema de Notificações Visuais para substituir os popups (alerts) do jogo
         function mostrarToast(mensagem, corHex = '#ff9500') {
             const aviso = document.createElement('div');
             aviso.style.cssText = `
@@ -602,7 +613,7 @@
                 aviso.style.opacity = '0';
                 aviso.style.transition = 'opacity 0.3s ease';
                 setTimeout(() => aviso.remove(), 300);
-            }, 3000);
+            }, 3500);
         }
 
         function rodarCarrosselBanners() {
@@ -635,13 +646,12 @@
             if(!u || !p) return alert("Por favor, preencha Usuário e Senha.");
             if(u.length < 3) return alert("O nome de usuário precisa de no mínimo 3 caracteres.");
 
-            // Validação de Imagem
             if(av) {
                 const urlValida = await validarURLImagem(av);
                 if(!urlValida) {
                     alert("⚠️ O link fornecido não é uma imagem válida! O link foi removido.");
-                    document.getElementById('reg-avatar').value = ""; // Apaga o campo
-                    return; // Bloqueia o registro até ele arrumar
+                    document.getElementById('reg-avatar').value = "";
+                    return;
                 }
             } else {
                 av = "https://images.placeholders.dev/?width=50&height=50&text=User";
@@ -688,12 +698,11 @@
 
             if(!av) return alert("Insira uma URL válida.");
 
-            // Validação de Imagem
             const urlValida = await validarURLImagem(av);
             if(!urlValida) {
                 alert("⚠️ O link fornecido não é uma imagem válida! O link foi removido.");
-                document.getElementById('up-avatar').value = ""; // Apaga o campo
-                return; // Bloqueia a atualização
+                document.getElementById('up-avatar').value = "";
+                return;
             }
 
             database.ref('users/' + u).once('value', snapshot => {
@@ -726,13 +735,11 @@
                 let encontrou = false;
                 snapshot.forEach(child => {
                     const room = child.val();
-                    // Agora lista salas no 'lobby' E salas 'jogando'
                     if(room.publica && (room.status === 'lobby' || room.status === 'jogando')) {
                         encontrou = true;
                         const div = document.createElement('div');
                         div.style = "display:flex; justify-content:space-between; background:#2c2c2e; padding:8px; border-radius:6px; font-size:0.9rem; align-items:center;";
                         
-                        // Adiciona um aviso visual se a sala já estiver em andamento
                         const statusJogo = room.status === 'jogando' ? ' <span style="color:#ff9500; font-size:0.8rem;">(Em Jogo ⚔️)</span>' : '';
                         
                         div.innerHTML = `<span>Sala: <strong>${room.id}</strong>${statusJogo} (Dono: ${room.host})</span>
@@ -773,8 +780,6 @@
             const idSugerido = Math.floor(1000 + Math.random() * 9000).toString();
             const isPublic = document.getElementById('check-room-public').checked;
             const palavra = DICIONARIO_COMPLETO[Math.floor(Math.random() * DICIONARIO_COMPLETO.length)];
-
-            // Anti-cheat: Encripta com Base64 para não lerem a resposta na aba Rede/DB facilmente
             const palavraSegura = btoa(palavra);
 
             const rData = {
@@ -801,13 +806,11 @@
                 if(!snapshot.exists()) return alert("Sala não encontrada.");
                 const room = snapshot.val();
                 
-                // Regras de Bloqueio:
                 if (room.status === 'encerrado') return alert("Esta partida já terminou.");
                 if (!room.publica && room.status !== 'lobby') return alert("Esta partida privada já começou e não permite novos jogadores.");
 
                 roomId = targetId;
                 amIHost = (room.host === username);
-                // Se a partida já estiver rolando, o jogador que entrar já é forçado como "pronto"
                 isReady = (amIHost || room.status === 'jogando'); 
 
                 database.ref(`rooms/${roomId}/players/${username}`).set({
@@ -829,7 +832,7 @@
         }
 
         function alternarPronto() {
-            if(amIHost) return; // O host está sempre pronto no lobby dele
+            if(amIHost) return;
             isReady = !isReady;
             document.getElementById('btn-ready-toggle').innerText = isReady ? "Pronto! (Aguardando...)" : "Marcar como Pronto";
             document.getElementById('btn-ready-toggle').style.background = isReady ? "var(--color-correct)" : "var(--color-present)";
@@ -857,12 +860,73 @@
                 snap.forEach(child => {
                     updates[`${child.key}/status`] = "jogando";
                     updates[`${child.key}/gridStates`] = "";
-                    updates[`${child.key}/ready`] = child.key === username; // O host já entra pronto
+                    updates[`${child.key}/ready`] = child.key === username;
                 });
                 database.ref(`rooms/${roomId}/players`).update(updates);
             });
             fecharOverlay();
             resetarVisualJogoLocal();
+        }
+
+        function fecharModalInicioPartida() {
+            document.getElementById('start-match-overlay').style.display = 'none';
+        }
+
+        // LÓGICA DA NOVA MECÂNICA DE SABOTAGEM ACUMULATIVA
+        function dispararEfeitoSabotagem(nomeEliminado) {
+            tempoSabotagemRestante += 20; // Adiciona +20s acumulando caso morra mais gente
+
+            mostrarToast(`⚠️ O jogador ${nomeEliminado} perdeu e atrapalhou vocês por +20s! 🤯`, '#ff453a');
+            document.body.classList.add('sabotado');
+
+            if (intervaloSabotagem) clearInterval(intervaloSabotagem);
+
+            intervaloSabotagem = setInterval(() => {
+                tempoSabotagemRestante--;
+
+                // Embaralha visualmente a grade a cada segundo
+                embaralharGradeVisualmente();
+
+                if (tempoSabotagemRestante <= 0) {
+                    clearInterval(intervaloSabotagem);
+                    intervaloSabotagem = null;
+                    document.body.classList.remove('sabotado');
+                    restaurarGradeOriginal();
+                    mostrarToast("✅ Sabotagem finalizada! Matriz e cores restauradas.", "var(--color-correct)");
+                }
+            }, 1000);
+        }
+
+        function embaralharGradeVisualmente() {
+            let todasLetras = [];
+            for (let r = 0; r < 6; r++) {
+                for (let c = 0; c < 5; c++) {
+                    if (guesses[r][c]) todasLetras.push(guesses[r][c]);
+                }
+            }
+            if (todasLetras.length === 0) return;
+
+            // Bagunça a array de letras digitadas
+            todasLetras.sort(() => Math.random() - 0.5);
+
+            let pointer = 0;
+            for (let r = 0; r < 6; r++) {
+                for (let c = 0; c < 5; c++) {
+                    if (guesses[r][c]) {
+                        const cell = document.getElementById(`cell-${r}-${c}`);
+                        if (cell) cell.innerText = todasLetras[pointer++] || "X";
+                    }
+                }
+            }
+        }
+
+        function restaurarGradeOriginal() {
+            for (let r = 0; r < 6; r++) {
+                for (let c = 0; c < 5; c++) {
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    if (cell) cell.innerText = guesses[r][c];
+                }
+            }
         }
 
         function conectarSalaListener() {
@@ -877,7 +941,6 @@
                 const room = snapshot.val();
                 roomStatus = room.status;
 
-                // Controle Auto-Start para o Host
                 if(amIHost && room.status === 'lobby') {
                     let todosProntos = true;
                     let numJogadores = 0;
@@ -890,7 +953,6 @@
 
                     document.getElementById('btn-host-start').style.display = 'block';
 
-                    // Se tem mais de 1 pessoa e todo mundo marcou pronto, inicia o jogo!
                     if(todosProntos && numJogadores > 1) {
                         forçarInicioPartida();
                     }
@@ -899,9 +961,10 @@
                 }
 
                 if (room.status === 'lobby' && jogoIniciado) {
-                    resetarVisualJogoLocal(); // Se o status voltar para lobby (Restart do Host)
+                    resetarVisualJogoLocal();
                 }
 
+                // Gatilho Otimizado de Inicialização de Partida
                 if(room.status === 'jogando' && !jogoIniciado) {
                     jogoIniciado = true;
                     if(presenceCheckInterval) clearInterval(presenceCheckInterval);
@@ -910,15 +973,25 @@
                     document.getElementById('timer-display').style.display = 'none';
                     document.getElementById('timer-message').innerText = "Adivinhe a palavra! O timer inicia quando alguém vencer. ⚔️";
 
-                    const splash = document.createElement('div');
-                    splash.className = 'splash-start-title';
-                    splash.innerText = 'PARTIDA INICIADA! ⚔️';
-                    document.body.appendChild(splash);
-                    setTimeout(() => splash.remove(), 1600);
+                    // Abre a nova janela estática de aviso em vez de animações pesadas
+                    document.getElementById('start-match-overlay').style.display = 'flex';
 
                     const gridContainer = document.getElementById('board-grid');
                     gridContainer.classList.add('apply-shake');
                     setTimeout(() => gridContainer.classList.remove('apply-shake'), 400);
+                }
+
+                // Escuta Mortes no Firebase para ativar a Sabotagem Coletiva
+                if (room.players) {
+                    Object.keys(room.players).forEach(k => {
+                        const playerAct = room.players[k];
+                        if (playerAct.status === 'perdeu' && !jogadoresMortosProcessados.includes(k)) {
+                            jogadoresMortosProcessados.push(k);
+                            if (jogoIniciado && myStatus === 'jogando') {
+                                dispararEfeitoSabotagem(playerAct.username);
+                            }
+                        }
+                    });
                 }
 
                 if(room.status === 'jogando' && room.vencedor && !alguemGanhou) {
@@ -997,7 +1070,6 @@
 
             mostrarToast(`⚠️ Linha eliminada! Restam ${novoMax} tentativas!`, '#ff9500');
 
-            // Reinicia o timer de 2 minutos para eliminar a próxima linha
             clearInterval(lineTimerInterval);
             lineTimerSeconds = 120;
             atualizarVisualTimer(lineTimerSeconds);
@@ -1177,6 +1249,11 @@
                     currentCol--;
                     guesses[currentRow][currentCol] = "";
                     document.getElementById(`cell-${currentRow}-${currentCol}`).innerText = "";
+                    
+                    // Se estiver sabotado, re-embaralha imediatamente após apagar
+                    if (document.body.classList.contains('sabotado')) {
+                        embaralharGradeVisualmente();
+                    }
                 }
             } else if (letra === 'ENTER') {
                 if (currentCol === 5) {
@@ -1189,11 +1266,17 @@
                     guesses[currentRow][currentCol] = letra;
                     document.getElementById(`cell-${currentRow}-${currentCol}`).innerText = letra;
                     currentCol++;
+
+                    // Se estiver sabotado, re-embaralha imediatamente após digitar uma nova letra
+                    if (document.body.classList.contains('sabotado')) {
+                        embaralharGradeVisualmente();
+                    }
                 }
             }
         }
 
         async function processarSubmissaoPalavra() {
+            // Se estiver sabotado, o jogador submete o que REALMENTE digitou internamente, ignorando a bagunça visual da tela
             const palTentada = guesses[currentRow].join("");
             
             if(!DICIONARIO_COMPLETO.includes(palTentada) && palTentada !== "TERMO") {
@@ -1201,10 +1284,9 @@
                 return;
             }
 
-            isProcessingWord = true; // Bloqueia digitação enquanto processa
+            isProcessingWord = true;
             
             try {
-                // Fetch Anti-Cheat: Baixa a palavra do BD apenas neste milissegundo exato
                 const snap = await database.ref(`rooms/${roomId}/palavraSecreta`).once('value');
                 if(!snap.exists()) return;
                 const gabarito = atob(snap.val()).toUpperCase();
@@ -1212,7 +1294,6 @@
                 let arrEstados = ["a", "a", "a", "a", "a"]; 
                 let letrasMarcadasGabarito = Array(5).fill(false);
 
-                // Validar Corretas
                 for(let i=0; i<5; i++) {
                     if(palTentada[i] === gabarito[i]) {
                         arrEstados[i] = "c";
@@ -1222,7 +1303,6 @@
                     }
                 }
 
-                // Validar Presentes
                 for(let i=0; i<5; i++) {
                     if(arrEstados[i] === "c") continue;
                     for(let j=0; j<5; j++) {
@@ -1284,11 +1364,16 @@
                     document.getElementById('overlay-wrapper').className = 'overlay-content overlay-lose';
                 }
 
+                // Se a pessoa continuou viva mas a sabotagem está rodando, fixa a pane visual
+                if (document.body.classList.contains('sabotado')) {
+                    embaralharGradeVisualmente();
+                }
+
             } catch (err) {
                 mostrarToast("Erro ao comunicar com servidor. Tente novamente.", "#ff453a");
                 console.error(err);
             } finally {
-                isProcessingWord = false; // Libera digitação
+                isProcessingWord = false;
             }
         }
 
@@ -1333,7 +1418,6 @@
             document.getElementById('overlay-body').innerText = corpo;
             document.getElementById('game-overlay').style.display = 'flex';
             
-            // Botão de reiniciar (somente Host)
             if (amIHost && roomStatus === 'encerrado') {
                 document.getElementById('btn-restart-game').style.display = 'inline-block';
             } else {
@@ -1359,6 +1443,13 @@
             guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
             gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
             
+            jogadoresMortosProcessados = [];
+            tempoSabotagemRestante = 0;
+            if(intervaloSabotagem) clearInterval(intervaloSabotagem);
+            intervaloSabotagem = null;
+            document.body.classList.remove('sabotado');
+            document.getElementById('start-match-overlay').style.display = 'none';
+
             if(lineTimerInterval) clearInterval(lineTimerInterval);
             document.getElementById('timer-display').style.display = 'none';
             document.getElementById('timer-message').innerText = "Aguardando a partida iniciar...";
