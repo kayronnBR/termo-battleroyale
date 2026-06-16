@@ -361,7 +361,6 @@
             <div style="font-size: 3.5rem; margin-bottom: 10px;">⚔️</div>
             <h2 style="color: var(--color-correct); letter-spacing: 1px;">A PARTIDA INICIOU!</h2>
             <p style="color: #ffffff; margin: 15px 0 25px 0; font-size: 1.05rem; line-height: 1.5;">O combate começou! Descubra a palavra secreta antes dos seus oponentes e cuidado com as sabotagens em massa!</p>
-            <button onclick="fecharModalInicioPartida()" style="background: var(--color-correct); font-size: 1.1rem; width: 100%; padding: 14px;">ENTRAR NO COMBATE 👑</button>
         </div>
     </div>
 
@@ -868,10 +867,6 @@
             resetarVisualJogoLocal();
         }
 
-        function fecharModalInicioPartida() {
-            document.getElementById('start-match-overlay').style.display = 'none';
-        }
-
         // LÓGICA DA NOVA MECÂNICA DE SABOTAGEM ACUMULATIVA
         function dispararEfeitoSabotagem(nomeEliminado) {
             tempoSabotagemRestante += 20; // Adiciona +20s acumulando caso morra mais gente
@@ -973,8 +968,11 @@
                     document.getElementById('timer-display').style.display = 'none';
                     document.getElementById('timer-message').innerText = "Adivinhe a palavra! O timer inicia quando alguém vencer. ⚔️";
 
-                    // Abre a nova janela estática de aviso em vez de animações pesadas
+                    // Abre a nova janela estática de aviso e fecha após 3 segundos automaticamente
                     document.getElementById('start-match-overlay').style.display = 'flex';
+                    setTimeout(() => {
+                        document.getElementById('start-match-overlay').style.display = 'none';
+                    }, 3000);
 
                     const gridContainer = document.getElementById('board-grid');
                     gridContainer.classList.add('apply-shake');
