@@ -529,7 +529,7 @@
             "VISAR", "VISCO", "VISTA", "VISTO", "VITAL", "VIUVA", "VIUVO", "VIVAZ", "VIVER", "VIVEU", 
             "VIVOS", "VOCES", "VOGAL", "VOLTA", "VOLTE", "VOLTO", "VOLTS", "VOSSA", "VOSSO",
             "VOTAR", "VOTOS", "VULGO", "VULTO", "VULVA", "XAMAN", "XEQUE", "XINGA", "XISTO", "ZANGA", 
-            "ZEBRA", "ZELAR", "ZINCO", "ZOMBA", "ZUMBI", "SUBIR", "BOSTA", "COBRA", "BORRA", "CHUCA", "BUNDA", "PORRA", "GESTO", "GESTA", "CREDO", "LIMBO", "LIMPA", "LENTE"
+            "ZEBRA", "ZELAR", "ZINCO", "ZOMBA", "ZUMBI", "SUBIR", "BOSTA", "COBRA", "BORRA", "CHUCA", "BUNDA", "PORRA"
         ]; 
 
         const DICIONARIO_COMPLETO = DICIONARIO_COMPLETO_BRUTO.filter(w => w.length === 5);
@@ -1009,6 +1009,7 @@
                 if(room.status === 'encerrado') {
                     if(lineTimerInterval) clearInterval(lineTimerInterval);
                     exibirDerrotaFinal(room.vencedor);
+                    iniciarVerificacaoPresenca();
                 }
 
                 renderizarPainelEspectadores(room.players);
@@ -1110,7 +1111,7 @@
         function iniciarVerificacaoPresenca() {
             if(presenceCheckInterval) clearInterval(presenceCheckInterval);
             presenceCheckInterval = setInterval(() => {
-                if(roomStatus !== 'lobby' || jogoIniciado) {
+                if(roomStatus === 'jogando') {
                     clearInterval(presenceCheckInterval);
                     return;
                 }
