@@ -379,6 +379,16 @@
     </footer>
 
     <script>
+        // Função para checar se a URL carrega uma imagem válida
+        function validarURLImagem(url) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
+                img.src = url;
+            });
+        }
+
         const LISTA_ANUNCIOS = [
             { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Anuncie+Aqui+Seu+Produto!&theme=dark", link: "https://docs.google.com/forms/d/e/1FAIpQLSdy0ooY6mo_WAGCnNJMLxx5RsQscHF3WOoVxqa1fQ8tyWFfoA/viewform?usp=dialog" },
             { imagem: "https://images.placeholders.dev/?width=468&height=80&text=Gostou+do+Jogo?+Envie+Sugestões!&theme=dark", link: "https://docs.google.com/forms/d/e/1FAIpQLScCjjUU77bMZUbif8qORTAgTXUZxSztiu0_PbcaKSzdqUyUKg/viewform?usp=sharing&ouid=103932070699342462645" },
@@ -512,7 +522,7 @@
             "VISAR", "VISCO", "VISTA", "VISTO", "VITAL", "VIUVA", "VIUVO", "VIVAZ", "VIVER", "VIVEU", 
             "VIVOS", "VOCES", "VOGAL", "VOLTA", "VOLTE", "VOLTO", "VOLTS", "VOSSA", "VOSSO",
             "VOTAR", "VOTOS", "VULGO", "VULTO", "VULVA", "XAMAN", "XEQUE", "XINGA", "XISTO", "ZANGA", 
-            "ZEBRA", "ZELAR", "ZINCO", "ZOMBA", "ZUMBI"
+            "ZEBRA", "ZELAR", "ZINCO", "ZOMBA", "ZUMBI", "SUBIR", "BOSTA", "COBRA", "BORRA", "CHUCA", "BUNDA", "PORRA"
         ]; 
 
         // Garante que absolutamente TODAS as palavras tenham 5 letras. Banimos as de 4.
@@ -617,13 +627,25 @@
             }
         }
 
-        function realizarRegistro() {
+        async function realizarRegistro() {
             const u = document.getElementById('reg-username').value.trim().toUpperCase();
             const p = document.getElementById('reg-password').value;
-            const av = document.getElementById('reg-avatar').value.trim() || "https://images.placeholders.dev/?width=50&height=50&text=User";
+            let av = document.getElementById('reg-avatar').value.trim();
             
             if(!u || !p) return alert("Por favor, preencha Usuário e Senha.");
             if(u.length < 3) return alert("O nome de usuário precisa de no mínimo 3 caracteres.");
+
+            // Validação de Imagem
+            if(av) {
+                const urlValida = await validarURLImagem(av);
+                if(!urlValida) {
+                    alert("⚠️ O link fornecido não é uma imagem válida! O link foi removido.");
+                    document.getElementById('reg-avatar').value = ""; // Apaga o campo
+                    return; // Bloqueia o registro até ele arrumar
+                }
+            } else {
+                av = "https://images.placeholders.dev/?width=50&height=50&text=User";
+            }
 
             database.ref('users/' + u).once('value', snapshot => {
                 if(snapshot.exists()) {
@@ -659,12 +681,20 @@
             });
         }
 
-        function atualizarFotoPerfil() {
+        async function atualizarFotoPerfil() {
             const u = document.getElementById('up-username').value.trim().toUpperCase();
             const p = document.getElementById('up-password').value;
             const av = document.getElementById('up-avatar').value.trim();
 
             if(!av) return alert("Insira uma URL válida.");
+
+            // Validação de Imagem
+            const urlValida = await validarURLImagem(av);
+            if(!urlValida) {
+                alert("⚠️ O link fornecido não é uma imagem válida! O link foi removido.");
+                document.getElementById('up-avatar').value = ""; // Apaga o campo
+                return; // Bloqueia a atualização
+            }
 
             database.ref('users/' + u).once('value', snapshot => {
                 const userData = snapshot.val();
@@ -696,11 +726,16 @@
                 let encontrou = false;
                 snapshot.forEach(child => {
                     const room = child.val();
-                    if(room.publica && room.status === 'lobby') {
+                    // Agora lista salas no 'lobby' E salas 'jogando'
+                    if(room.publica && (room.status === 'lobby' || room.status === 'jogando')) {
                         encontrou = true;
                         const div = document.createElement('div');
                         div.style = "display:flex; justify-content:space-between; background:#2c2c2e; padding:8px; border-radius:6px; font-size:0.9rem; align-items:center;";
-                        div.innerHTML = `<span>Sala: <strong>${room.id}</strong> (Dono: ${room.host})</span>
+                        
+                        // Adiciona um aviso visual se a sala já estiver em andamento
+                        const statusJogo = room.status === 'jogando' ? ' <span style="color:#ff9500; font-size:0.8rem;">(Em Jogo ⚔️)</span>' : '';
+                        
+                        div.innerHTML = `<span>Sala: <strong>${room.id}</strong>${statusJogo} (Dono: ${room.host})</span>
                                          <button onclick="document.getElementById('input-room-id').value='${room.id}'; entrarNaSala();" style="width:auto; margin:0; padding:4px 10px; font-size:0.8rem;">Entrar</button>`;
                         container.appendChild(div);
                     }
@@ -765,11 +800,15 @@
             database.ref('rooms/' + targetId).once('value', snapshot => {
                 if(!snapshot.exists()) return alert("Sala não encontrada.");
                 const room = snapshot.val();
-                if(room.status !== 'lobby') return alert("Esta partida já começou ou terminou.");
+                
+                // Regras de Bloqueio:
+                if (room.status === 'encerrado') return alert("Esta partida já terminou.");
+                if (!room.publica && room.status !== 'lobby') return alert("Esta partida privada já começou e não permite novos jogadores.");
 
                 roomId = targetId;
                 amIHost = (room.host === username);
-                isReady = amIHost; 
+                // Se a partida já estiver rolando, o jogador que entrar já é forçado como "pronto"
+                isReady = (amIHost || room.status === 'jogando'); 
 
                 database.ref(`rooms/${roomId}/players/${username}`).set({
                     username: username,
