@@ -374,20 +374,16 @@
         </div>
     </div>
 
-    <div id="presence-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:200;">
-        <div style="background:#1c1c1e; padding:40px; border-radius:12px; border:2px solid #ff9500; text-align:center; max-width:360px;">
-            <div style="font-size:3rem; margin-bottom:10px;">👀</div>
-            <h2 style="color:#ff9500; margin-bottom:10px;">Você ainda está aí?</h2>
-            <p style="color:#86868b; margin-bottom:20px;">Responda em <strong id="presence-countdown" style="color:#ff453a;">30</strong> segundos ou será removido da sala.</p>
-            <button onclick="confirmarPresenca()" style="background:var(--color-correct); font-size:1.1rem;">✅ Estou Aqui!</button>
-        </div>
-    </div>
-
     <footer>
         Feito por <strong>Kayronn Monteiro</strong> com suporte da Inteligência Artificial <a href="https://deepmind.google/technologies/gemini/" target="_blank">Google Gemini</a>.
     </footer>
 
     <script>
+        // --- NOVAS VARIÁVEIS DE AFK ---
+        let timeoutInatividade = null;
+        const TEMPO_AFK_LOBBY = 5 * 60 * 1000; // 5 minutos parado no lobby = Expulso
+        const TEMPO_AFK_JOGO = 10 * 60 * 1000; // 10 minutos parado jogando = Expulso
+
         function validarURLImagem(url) {
             return new Promise(resolve => {
                 const img = new Image();
@@ -554,8 +550,6 @@
         let lineTimerSeconds = 120;       
         let linhasEliminadas = 0;         
         let alguemGanhou = false;         
-        let presenceCheckInterval = null; 
-        let presenceDialogOpen = false;   
 
         // Variaveis da Nova Mecânica de Sabotagem
         let jogadoresMortosProcessados = [];
@@ -564,6 +558,17 @@
 
         let guesses = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]];
         let gridStates = [["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]]; 
+
+        function resetarTimerAFK() {
+            if (timeoutInatividade) clearTimeout(timeoutInatividade);
+            if (!roomId || !username) return;
+
+            const limite = (roomStatus === 'jogando') ? TEMPO_AFK_JOGO : TEMPO_AFK_LOBBY;
+            timeoutInatividade = setTimeout(() => {
+                alert("Você foi removido da sala por inatividade. ⏰");
+                abandonarSala();
+            }, limite);
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             rodarCarrosselBanners();
@@ -820,8 +825,15 @@
                     status: "jogando",
                     gridStates: ""
                 }).then(() => {
+                    // Mágica de desconexão (Aba fechada ou conexão caiu)
+                    database.ref(`rooms/${roomId}/players/${username}`).onDisconnect().remove();
+                    if (amIHost) {
+                        database.ref(`rooms/${roomId}`).onDisconnect().remove();
+                    }
+
                     mudarTela('game');
                     conectarSalaListener();
+                    resetarTimerAFK();
                 });
             });
         }
@@ -834,6 +846,8 @@
         function alternarPronto() {
             if(amIHost) return;
             isReady = !isReady;
+            resetarTimerAFK();
+
             document.getElementById('btn-ready-toggle').innerText = isReady ? "Pronto! (Aguardando...)" : "Marcar como Pronto";
             document.getElementById('btn-ready-toggle').style.background = isReady ? "var(--color-correct)" : "var(--color-present)";
             database.ref(`rooms/${roomId}/players/${username}/ready`).set(isReady);
@@ -930,8 +944,6 @@
 
             document.getElementById('room-title').innerHTML = `SALA: ${roomId} <button class="btn-copy" id="btn-copy-code" onclick="copiarCodigoSala()">Copiar Código</button>`;
 
-            iniciarVerificacaoPresenca();
-
             roomListener = database.ref('rooms/' + roomId).on('value', snapshot => {
                 if(!snapshot.exists()) return;
                 const room = snapshot.val();
@@ -963,7 +975,6 @@
                 // Gatilho Otimizado de Inicialização de Partida
                 if(room.status === 'jogando' && !jogoIniciado) {
                     jogoIniciado = true;
-                    if(presenceCheckInterval) clearInterval(presenceCheckInterval);
 
                     document.getElementById('lobby-panel').style.display = 'none';
                     document.getElementById('timer-display').style.display = 'none';
@@ -1010,7 +1021,6 @@
                 if(room.status === 'encerrado') {
                     if(lineTimerInterval) clearInterval(lineTimerInterval);
                     exibirDerrotaFinal(room.vencedor);
-                    iniciarVerificacaoPresenca();
                 }
 
                 renderizarPainelEspectadores(room.players);
@@ -1109,52 +1119,6 @@
             }
         }
 
-        function iniciarVerificacaoPresenca() {
-            if(presenceCheckInterval) clearInterval(presenceCheckInterval);
-            presenceCheckInterval = setInterval(() => {
-                if(roomStatus === 'jogando') {
-                    clearInterval(presenceCheckInterval);
-                    return;
-                }
-                exibirModalPresenca();
-            }, 120000);
-        }
-
-        function exibirModalPresenca() {
-            presenceDialogOpen = true;
-            document.getElementById('presence-overlay').style.display = 'flex';
-            let countdown = 30;
-            document.getElementById('presence-countdown').innerText = countdown;
-
-            const presTimer = setInterval(() => {
-                countdown--;
-                document.getElementById('presence-countdown').innerText = countdown;
-                if(countdown <= 0) {
-                    clearInterval(presTimer);
-                    expulsarPorInatividade();
-                }
-            }, 1000);
-
-            document.getElementById('presence-overlay').dataset.timerId = presTimer;
-        }
-
-        function confirmarPresenca() {
-            const timerId = parseInt(document.getElementById('presence-overlay').dataset.timerId);
-            clearInterval(timerId);
-            presenceDialogOpen = false;
-            document.getElementById('presence-overlay').style.display = 'none';
-            if(roomId && username) {
-                database.ref(`rooms/${roomId}/players/${username}/lastSeen`).set(Date.now());
-            }
-        }
-
-        function expulsarPorInatividade() {
-            presenceDialogOpen = false;
-            document.getElementById('presence-overlay').style.display = 'none';
-            alert("Você foi removido da sala por inatividade. ⏰");
-            abandonarSala();
-        }
-
         function atualizarVisualTimer(segundos) {
             if(segundos < 0) segundos = 0;
             const min = Math.floor(segundos / 60).toString().padStart(2, '0');
@@ -1243,6 +1207,8 @@
 
         function pressKey(letra) {
             if(roomStatus !== 'jogando' || myStatus !== 'jogando' || isProcessingWord) return;
+
+            resetarTimerAFK();
 
             if (letra === 'BACKSPACE') {
                 if (currentCol > 0) {
@@ -1470,11 +1436,9 @@
 
         function resetarEstadoJogoMenu() {
             if(timerInterval) clearInterval(timerInterval);
-            if(presenceCheckInterval) clearInterval(presenceCheckInterval);
+            if(timeoutInatividade) clearTimeout(timeoutInatividade); 
             if(roomId && roomListener) database.ref('rooms/' + roomId).off('value', roomListener);
             roomId = ""; roomStatus = "lobby"; amIHost = false; isReady = false;
-            presenceDialogOpen = false;
-            document.getElementById('presence-overlay').style.display = 'none';
             resetarVisualJogoLocal();
         }
     </script>
