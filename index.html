@@ -416,6 +416,7 @@
         const database = firebase.database();
 
         const DICIONARIO_COMPLETO_BRUTO = [
+            // Palavras originais do seu jogo
             "ABAFO", "ABALO", "ABATE", "ABONO", "ABRIL", "ACASO", "ACENO", "ACESO", "ACIDA", "ACIDO",
             "ACIMA", "ACOES", "ADEUS", "ADIAR", "ADOTO", "ADUBO", "ADVIR", "AFAGO", "AFETO", "AFIAR",
             "AFINS", "AGAPE", "AGORA", "AGUDO", "AGUIA", "AJUDA", "ALADO", "ALGOZ", "ALTAR", "ALUNO",
@@ -526,9 +527,25 @@
             "VISAR", "VISCO", "VISTA", "VISTO", "VITAL", "VIUVA", "VIUVO", "VIVAZ", "VIVER", "VIVEU", 
             "VIVOS", "VOCES", "VOGAL", "VOLTA", "VOLTE", "VOLTO", "VOLTS", "VOSSA", "VOSSO",
             "VOTAR", "VOTOS", "VULGO", "VULTO", "VULVA", "XAMAN", "XEQUE", "XINGA", "XISTO", "ZANGA", 
-            "ZEBRA", "ZELAR", "ZINCO", "ZOMBA", "ZUMBI", "SUBIR", "BOSTA", "COBRA", "BORRA", "CHUCA", "BUNDA", "PORRA"
-        ]; 
-
+            "ZEBRA", "ZELAR", "ZINCO", "ZOMBA", "ZUMBI", "SUBIR", "BOSTA", "COBRA", "BORRA", "CHUCA", "BUNDA", "PORRA",
+            
+            // Novas palavras extraídas do léxico e listas fornecidas
+            "ACHOU", "AMAPA", "AMARA", "AMAVA", "APAGA", "APELA", "ASSIS", "ATACA", "BAHIA", "BAIAO", 
+            "BAURU", "BORBA", "CACAR", "CALAR", "CEARA", "CEDRO", "COARI", "COTIA", "CRATO", "CUIDA", 
+            "CULPA", "DANCA", "DEITA", "DEIXA", "DOBRA", "DOMAR", "DOPAR", "DOSAR", "DOTAR", "DOURA", 
+            "EDITA", "EDUCA", "EMANA", "EMITE", "ENTRA", "ENVIA", "ERGUE", "ERRAR", "ESPIA", "EXALA", 
+            "EXIBE", "EXIGE", "EXIME", "FEDER", "FICAR", "FILMA", "FINTA", "FISGA", "FITAR", "FIXAR", 
+            "FOCAR", "FOLGA", "FORJA", "GOIAS", "GOZAR", "HAITI", "IEMEN", "INDIA", "ISOLA", "JAPAO", 
+            "JAZER", "JEJUA", "JORRA", "JULGA", "JUNTA", "LACRA", "LADRA", "LANCA", "LASCA", "LAVAR", 
+            "LAVRA", "LESAR", "LEVAR", "LIBIA", "LIDAR", "LIGAR", "LIMAR", "LIMPA", "LIVRA", "LOCAR", 
+            "LOGRA", "LOTAR", "LOUVA", "LUCRAR", "LUTAR", "LUZIR", "MACAU", "MALHA", "MALTA", "MANCA", 
+            "MANDA", "MANJA", "MARCA", "MAUES", "MEDIR", "MIGRA", "MIMAR", "MINAR", "MIRAR", "MOLHA", 
+            "MORAR", "MORDE", "MORRE", "MUDAR", "MURAR", "NARRA", "NASCE", "NATAL", "NAURU", "NEGAR", 
+            "NEPAL", "NEVAR", "NIGER", "NINAR", "OBTER", "OCUPA", "OMITE", "ONERA", "OPINA", "OPTAR", 
+            "ORNAR", "OXIDA", "PALAU", "PALPA", "PAPAR", "PARIR", "PATOS", "PEJAR", "PELAR", "PENAR", 
+            "PENSA", "PIAUI", "PICAR", "PICOS", "PILHA", "PINGA", "POLIR", "PRATA", "QATAR", "ROCAR", 
+            "RUMAR", "SABER", "SAMOA", "SUDAO", "SUICA", "TONGA", "TOSSIR", "UNIR", "URDIR", "URGIR"
+        ];
         const DICIONARIO_COMPLETO = DICIONARIO_COMPLETO_BRUTO.filter(w => w.length === 5);
 
         let username = "";
